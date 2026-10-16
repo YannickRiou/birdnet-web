@@ -94,6 +94,13 @@ main { max-width: 640px; margin: 0 auto; }
 .photo { width: 72px; height: 72px; border-radius: 4px; overflow: hidden; background: var(--leaf); }
 .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .photo img:not([src]) { visibility: hidden; }
+.photo { position: relative; }
+.play {
+  position: absolute; inset: 0; margin: auto; width: 40px; height: 40px; border: 0; border-radius: 50%;
+  background: rgba(30, 43, 34, .78); color: var(--paper); font-size: 15px; line-height: 40px; padding: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.play.on { background: var(--robin); color: var(--ink); }
 .body { min-width: 0; }
 .body h3 { font-size: 18px; }
 .body h3 a { color: var(--ink); text-decoration: none; }

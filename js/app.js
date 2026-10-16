@@ -61,7 +61,7 @@ worker.onmessage = ({ data }) => {
       break;
     case 'result':
       ui.status.textContent = `Analyse en ${data.ms} ms`;
-      onDetections(data.detections, null);
+      onDetections(data.detections, null, data.clip);
       break;
     case 'geo':
       geoScores = data.scores;
@@ -71,7 +71,7 @@ worker.onmessage = ({ data }) => {
       break;
     case 'fileResult':
       ui.hint.textContent = `Analyse de l'enregistrement… ${Math.round(data.progress * 100)} %`;
-      onDetections(data.detections, data.time);
+      onDetections(data.detections, data.time, data.clip);
       break;
     case 'fileDone':
       ui.hint.textContent = detected.size ? 'Analyse terminée.' : 'Analyse terminée : aucune espèce reconnue au seuil choisi.';
@@ -93,11 +93,12 @@ function visible(d) {
   return true;
 }
 
-function onDetections(list, fileTime) {
+function onDetections(list, fileTime, clip) {
   const now = Date.now();
   for (const [index, score] of list) {
     if (NON_SPECIES.has(species[index][0]) || score < settings.threshold) continue;
-    const d = detected.get(index) || { index, best: 0, first: now, time: fileTime };
+    const d = detected.get(index) || { index, best: 0, first: now, time: fileTime, clip: null };
+    if (clip && score > d.best) d.clip = clip; // on garde l'extrait au meilleur score
     d.best = Math.max(d.best, score);
     d.last = now;
     if (fileTime !== null && d.time === null) d.time = fileTime;
@@ -176,6 +177,11 @@ function rerender() {
       btn.onclick = () => {
         if (!life.has(sci)) life.add({ sci, fr, en, score: d.best });
       };
+      const play = card.querySelector('.play');
+      play.onclick = () => {
+        const cur = detected.get(d.index);
+        if (cur && cur.clip) playClip(cur.clip, play);
+      };
       cards.set(d.index, card);
     }
     card.classList.toggle('live', mode === 'live' && listening && now - d.last < LIVE_MS);
@@ -183,11 +189,54 @@ function rerender() {
       ? `${percent(d.best)} · à ${clock(d.time)}`
       : `${percent(d.best)} · ${ago(now - d.last)}`;
     setAddButton(card.querySelector('.add'), sci);
+    card.querySelector('.play').hidden = !d.clip;
     // Ne déplace le nœud que s'il n'est pas déjà à sa place (évite les sauts de défilement).
     if (ui.detections.children[i] !== card) ui.detections.insertBefore(card, ui.detections.children[i] || null);
   });
   ui.detCount.textContent = shown.length ? `${shown.length} espèce${shown.length > 1 ? 's' : ''}` : '';
   ui.detEmpty.hidden = shown.length > 0;
+}
+
+// ---------- Réécoute des extraits ----------
+let playCtx = null;
+let player = null; // { source, button } de l'extrait en cours de lecture
+
+function stopClip() {
+  if (!player) return;
+  const { source, button } = player;
+  player = null;
+  source.onended = null;
+  source.stop();
+  button.classList.remove('on');
+  button.textContent = '▶';
+  button.setAttribute('aria-label', "Réécouter l'extrait");
+  if (listening) worker.postMessage({ type: 'listen', on: true });
+}
+
+function playClip(clip, button) {
+  const same = player && player.button === button;
+  stopClip();
+  if (same) return; // second appui = arrêt
+  playCtx = playCtx || new (window.AudioContext || window.webkitAudioContext)();
+  playCtx.resume();
+  // Normalisation : un chant lointain est souvent très faible (gain plafonné à ×20).
+  let peak = 0;
+  for (let i = 0; i < clip.length; i++) peak = Math.max(peak, Math.abs(clip[i]));
+  const gain = Math.min(0.9 / (peak || 1), 20);
+  const buffer = playCtx.createBuffer(1, clip.length, 48000);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < clip.length; i++) data[i] = clip[i] * gain;
+  const source = playCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(playCtx.destination);
+  // Pendant la lecture, l'analyse est suspendue : sinon le micro réentendrait l'extrait.
+  if (listening) worker.postMessage({ type: 'listen', on: false });
+  source.onended = stopClip;
+  source.start();
+  button.classList.add('on');
+  button.textContent = '■';
+  button.setAttribute('aria-label', 'Arrêter la lecture');
+  player = { source, button };
 }
 
 // Rafraîchit « il y a … » et la surbrillance, sans travail inutile quand l'onglet est caché.
@@ -247,6 +296,7 @@ ui.file.onchange = async () => {
   ui.file.value = '';
   if (!file) return;
   stopListening();
+  stopClip();
   mode = 'file';
   detected.clear();
   rerender();

@@ -8,6 +8,7 @@
  *   {type:'location', points, area}   espèces probables sur une zone (modèle géographique)
  *   {type:'file', samples}            analyse un enregistrement complet (48 kHz)
  * Messages envoyés : progress, ready, result, geo, fileResult, fileDone, error.
+ * result et fileResult portent `clip` : les 3 s analysées (Float32Array 48 kHz), ou null sans détection.
  */
 /* global tf, BirdNETCore */
 importScripts('../vendor/tf.min.js', '../vendor/tf-backend-wasm.min.js', 'birdnet-core.js');
@@ -112,7 +113,10 @@ async function schedule() {
   try {
     const t = performance.now();
     const scores = await infer(windowBuf);
-    if (listening) post({ type: 'result', detections: topScores(scores), ms: Math.round(performance.now() - t) });
+    const detections = topScores(scores);
+    // L'extrait analysé accompagne les détections, pour pouvoir le réécouter (transfert sans copie).
+    const clip = detections.length ? windowBuf.slice() : null;
+    if (listening) post({ type: 'result', detections, clip, ms: Math.round(performance.now() - t) }, clip ? [clip.buffer] : []);
   } catch (e) {
     post({ type: 'error', message: String(e && e.message || e) });
   }
@@ -129,8 +133,10 @@ async function analyzeFile(samples) {
     chunk.fill(0);
     chunk.set(part);
     const scores = await infer(chunk);
-    post({ type: 'fileResult', time: start / SAMPLE_RATE, detections: topScores(scores),
-      progress: Math.min(1, (start + WINDOW) / samples.length) });
+    const detections = topScores(scores);
+    const clip = detections.length ? chunk.slice() : null;
+    post({ type: 'fileResult', time: start / SAMPLE_RATE, detections, clip,
+      progress: Math.min(1, (start + WINDOW) / samples.length) }, clip ? [clip.buffer] : []);
   }
   post({ type: 'fileDone' });
 }
