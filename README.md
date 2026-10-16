@@ -1,111 +1,112 @@
 # Piaf
 
-**Piaf** identifie les oiseaux à leur chant, directement dans le navigateur. C'est une application web
-statique, installable (PWA) et utilisable hors ligne après le premier chargement.
+**Piaf** identifies birds by their song, right in the browser. It is a static, installable web app (PWA)
+that works offline after the first load. The app interface is in French.
 
-Elle est née d'un besoin simple : permettre aux personnes dont le téléphone ne peut pas installer
-Merlin Bird ID (par exemple un iPhone 8 bloqué sous iOS 16) d'identifier quand même les oiseaux.
-Elle fonctionne aussi sur les téléphones récents et sur ordinateur.
+It grew out of a simple need: letting people whose phone cannot install Merlin Bird ID (for example an
+iPhone 8 stuck on iOS 16) identify birds anyway. It also works on recent phones and on desktop.
 
-- Application : <https://yannickriou.github.io/birdnet-web/>
-- Dépôt : <https://github.com/YannickRiou/birdnet-web>
+- App: <https://yannickriou.github.io/birdnet-web/>
+- Repository: <https://github.com/YannickRiou/birdnet-web>
 
-Piaf n'est affilié ni au Cornell Lab of Ornithology ni à Merlin.
+Piaf is not affiliated with the Cornell Lab of Ornithology or with Merlin.
 
-## Utiliser Piaf
+## Using Piaf
 
 **iPhone (Safari)**
-1. Ouvrir <https://yannickriou.github.io/birdnet-web/> dans **Safari**, de préférence en Wi-Fi
-   (premier chargement : environ 26 Mo de modèle + 15 Mo pour le filtre géographique).
-2. Bouton Partager, puis **Sur l'écran d'accueil**. Sans cela, Safari peut effacer les données du site après
-   7 jours sans visite.
-3. Lancer Piaf depuis l'icône, autoriser le micro, puis appuyer sur l'écoute.
-4. Garder l'écran allumé pendant l'écoute (Piaf le demande automatiquement quand le navigateur le permet) :
-   le micro s'arrête dès que l'application passe en arrière-plan.
+1. Open <https://yannickriou.github.io/birdnet-web/> in **Safari**, preferably on Wi-Fi
+   (first load: about 26 MB for the model + 15 MB for the geographic filter).
+2. Tap Share, then **Sur l'écran d'accueil** (Add to Home Screen). Without this, Safari may erase the site's
+   data after 7 days without a visit.
+3. Launch Piaf from its icon, allow the microphone, then tap the listen button.
+4. Keep the screen on while listening (Piaf requests this automatically when the browser allows it):
+   the microphone stops as soon as the app goes to the background.
 
-**Android (Chrome)** : ouvrir l'adresse, puis menu, **Installer l'application** (ou Ajouter à l'écran d'accueil).
+**Android (Chrome)**: open the address, then menu, **Installer l'application** (Install app), or Add to Home Screen.
 
-**Ordinateur** : ouvrir l'adresse dans un navigateur récent ; l'installation est optionnelle.
+**Desktop**: open the address in a recent browser; installing is optional.
 
-## Fonctionnalités
+## Features
 
-- **Écoute en direct** avec spectrogramme défilant.
-- **Analyse d'un fichier audio** (mémo vocal, enregistrement...).
-- **Fiches espèces** : nom français, nom scientifique, confiance et photo iNaturalist (uniquement des photos
-  Creative Commons, créditées avec l'auteur et un lien vers la licence).
-- **Ma liste à vie** : touchez « ＋ Ma liste » pour confirmer une espèce. La liste est stockée dans le
-  `localStorage` du téléphone (les cookies sont trop petits, 4 Ko), avec export/import d'une sauvegarde JSON.
-- **Filtre géographique et saisonnier** (modèle géographique de BirdNET, seuil 0,03), activé par défaut sur
-  l'**Europe continentale** sans demander la position : grille de points tous les 2,5° (37–60° N, 10° O–30° E),
-  une espèce est gardée si elle est probable cette semaine en au moins un point. En option, la position précise
-  de l'appareil peut être utilisée à la place.
-- **Réglages** : seuil de confiance (50 % par défaut), filtre on/off, position précise on/off.
+- **Live listening** with a scrolling spectrogram.
+- **Audio file analysis** (voice memo, recording...).
+- **Species cards**: French name, scientific name, confidence and iNaturalist photo (Creative Commons photos
+  only, credited with the author and a link to the license).
+- **Life list** ("Ma liste à vie"): tap « ＋ Ma liste » (add to my list) to confirm a species. The list is stored in the
+  phone's `localStorage` (cookies are too small, 4 KB), with JSON backup export/import.
+- **Geographic and seasonal filter** (BirdNET geographic model, threshold 0.03), enabled by default on
+  **continental Europe** without asking for the location: grid of points every 2.5° (37–60° N, 10° W–30° E),
+  a species is kept if it is likely this week at at least one point. Optionally, the device's precise
+  location can be used instead.
+- **Settings**: confidence threshold (50% by default), filter on/off, precise location on/off.
 
-## Vie privée
+## Privacy
 
-- Le son est analysé **sur l'appareil** ; il n'est jamais envoyé nulle part.
-- La position n'est demandée que si vous activez l'option « position précise », et elle ne quitte jamais le téléphone.
-- Seul le **nom scientifique** d'une espèce est envoyé à iNaturalist pour récupérer une photo.
-- La liste à vie reste dans le stockage local de l'appareil.
+- Sound is analyzed **on the device**; it is never sent anywhere.
+- Location is only requested if you enable the "précise" (precise location) option, and it never leaves the phone.
+- Only a species' **scientific name** is sent to iNaturalist to fetch a photo.
+- The life list stays in the device's local storage.
 
-## Limites
+## Limitations
 
-- Les **faux positifs** existent : une identification est une aide, pas une certitude. Vérifiez à l'oreille et
-  à l'œil, surtout pour les espèces rares ou hors saison.
-- **Usage non commercial uniquement** : la licence du modèle BirdNET (CC BY-NC 4.0) l'impose.
-- Le micro **s'arrête en arrière-plan** (écran verrouillé ou autre application).
-- Sur iOS, le stockage d'un site non installé peut être purgé : installez Piaf sur l'écran d'accueil et
-  **exportez régulièrement** votre liste à vie.
-- Les 11 classes non-espèces du modèle (voix humaine, chien, moteur...) ne sont jamais affichées.
+- **False positives** exist: an identification is a help, not a certainty. Check by ear and by eye,
+  especially for rare or out-of-season species.
+- **Non-commercial use only**: the BirdNET model license (CC BY-NC 4.0) requires it.
+- The microphone **stops in the background** (locked screen or another app).
+- On iOS, the storage of a non-installed site may be purged: install Piaf on the home screen and
+  **export your life list regularly**.
+- The model's 11 non-species classes (human voice, dog, engine...) are never displayed.
 
-## Développement
+## Development
 
-Aucune étape de build : ce sont des fichiers statiques.
+No build step: these are static files.
 
 ```bash
-npm run serve          # python -m http.server 8080, puis http://localhost:8080
-npm install && npm run check   # vérifie le modèle (tools/check_model.mjs)
-npm run vendor         # copie TensorFlow.js dans vendor/
-python tools/build_model.py    # régénère model/ depuis Zenodo (vérifie le MD5)
-python tools/make_icons.py     # régénère les icônes
+npm run serve          # python -m http.server 8080, then http://localhost:8080
+npm install && npm run check   # checks the model (tools/check_model.mjs)
+npm run vendor         # copies TensorFlow.js into vendor/
+python tools/build_model.py    # regenerates model/ from Zenodo (checks the MD5)
+python tools/make_icons.py     # renders the PNG icons from icons/icon.svg (headless Edge/Chrome + Pillow)
 ```
 
-- `?backend=wasm|webgl|cpu` dans l'URL force un moteur de calcul (tests).
-- Après un changement du modèle ou de `vendor/`, incrémenter `VERSION` dans `sw.js`.
-- **Déploiement** : GitHub Pages depuis la branche `main`, dossier racine (Settings, Pages).
+- The app icon is a bird drawn with spectrogram bars; `icons/icon.svg` is the single source, and
+  `tools/make_icons.py` renders the PNG variants from it.
+- `?backend=wasm|webgl|cpu` in the URL forces a compute backend (testing).
+- After a change to the model or to `vendor/`, increment `VERSION` in `sw.js`.
+- **Deployment**: GitHub Pages from the `main` branch, root folder (Settings, Pages).
 
 ## Architecture
 
-| Fichier | Rôle |
+| File | Role |
 |---|---|
 | `js/app.js` | Interface |
-| `js/engine-worker.js` | Web Worker : TF.js, choix du backend WebGL (repli ou benchmark WebAssembly SIMD si WebGL est absent, sans float32, ou > 600 ms) ; fenêtres de 3 s à 48 kHz, nouvelle analyse toutes les 1,5 s, adaptation automatique sur téléphone lent (analyse de la fenêtre la plus récente) |
-| `js/birdnet-core.js` | Spectrogramme mel CPU (FFT radix-2) |
-| `js/capture-worklet.js` | AudioWorklet : rééchantillonne le micro à 48 kHz, envoie des blocs de 100 ms directement au worker (MessageChannel) |
-| `js/audio.js` | Micro (echoCancellation, noiseSuppression et autoGainControl désactivés, car ils effacent le chant) ; décodage de fichiers |
-| `js/spectrogram.js` | Spectrogramme, colormap magma |
-| `js/species-info.js` | iNaturalist (≤ 1 requête/s, cache 30 jours) |
-| `js/lifelist.js` | Liste à vie |
-| `sw.js` | Hors ligne : cache d'abord pour `model/` et `vendor/`, réseau d'abord pour les fichiers de l'app |
+| `js/engine-worker.js` | Web Worker: TF.js, WebGL backend selection (fallback or WebAssembly SIMD benchmark if WebGL is missing, lacks float32, or is > 600 ms); 3 s windows at 48 kHz, new analysis every 1.5 s, automatic adaptation on slow phones (analyzes the most recent window) |
+| `js/birdnet-core.js` | CPU mel spectrogram (radix-2 FFT) |
+| `js/capture-worklet.js` | AudioWorklet: resamples the microphone to 48 kHz, sends 100 ms blocks directly to the worker (MessageChannel) |
+| `js/audio.js` | Microphone (echoCancellation, noiseSuppression and autoGainControl disabled, because they erase birdsong); file decoding |
+| `js/spectrogram.js` | Spectrogram, magma colormap |
+| `js/species-info.js` | iNaturalist (≤ 1 request/s, 30-day cache) |
+| `js/lifelist.js` | Life list |
+| `sw.js` | Offline: cache first for `model/` and `vendor/`, network first for app files |
 | `tools/` | `build_model.py`, `check_model.mjs`, `vendor.mjs`, `make_icons.py` |
 
-Performance mesurée : environ 84 ms par analyse de 3 s avec WebGL sur ordinateur.
+Measured performance: about 84 ms per 3 s analysis with WebGL on desktop.
 
-## Crédits et licences
+## Credits and licenses
 
-Le code de Piaf est sous licence MIT (voir `LICENSE`). Le modèle est sous une licence différente.
+Piaf's code is under the MIT license (see `LICENSE`). The model is under a different license.
 
-| Composant | Auteur | Licence | Lien |
+| Component | Author | License | Link |
 |---|---|---|---|
-| Code de Piaf | Yannick Riou | MIT | [`LICENSE`](LICENSE) |
-| Modèle BirdNET V2.4 (`model/`, converti en float16) | K. Lisa Yang Center for Conservation Bioacoustics (Cornell Lab of Ornithology), Chemnitz University of Technology | CC BY-NC 4.0 (non commercial) | [`model/LICENSE.md`](model/LICENSE.md), [Zenodo](https://zenodo.org/records/15050749) |
+| Piaf code | Yannick Riou | MIT | [`LICENSE`](LICENSE) |
+| BirdNET V2.4 model (`model/`, converted to float16) | K. Lisa Yang Center for Conservation Bioacoustics (Cornell Lab of Ornithology), Chemnitz University of Technology | CC BY-NC 4.0 (non-commercial) | [`model/LICENSE.md`](model/LICENSE.md), [Zenodo](https://zenodo.org/records/15050749) |
 | TensorFlow.js 4.22.0 (`vendor/`) | Google / TensorFlow Authors | Apache-2.0 | [`vendor/LICENSE-tfjs.txt`](vendor/LICENSE-tfjs.txt) |
-| Polices Fraunces et Nunito Sans (Google Fonts) | Auteurs respectifs | SIL OFL | [fonts.google.com](https://fonts.google.com/) |
-| Photos d'espèces | Photographes iNaturalist | Chaque photo sous sa licence Creative Commons, créditée dans l'application | [iNaturalist](https://www.inaturalist.org/) |
+| Fraunces and Nunito Sans fonts (Google Fonts) | Respective authors | SIL OFL | [fonts.google.com](https://fonts.google.com/) |
+| Species photos | iNaturalist photographers | Each photo under its own Creative Commons license, credited in the app | [iNaturalist](https://www.inaturalist.org/) |
 
-**Citation de BirdNET** : Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). BirdNET: A deep learning
+**BirdNET citation**: Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). BirdNET: A deep learning
 solution for avian diversity monitoring. *Ecological Informatics*, 61, 101236.
 <https://doi.org/10.1016/j.ecoinf.2021.101236>
 
-Modifications apportées au modèle (poids en float16, couche mel réimplémentée sur CPU, fusion des noms) :
-voir [`model/LICENSE.md`](model/LICENSE.md).
+Changes made to the model (float16 weights, mel layer reimplemented on CPU, merged names):
+see [`model/LICENSE.md`](model/LICENSE.md).
