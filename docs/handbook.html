@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piaf developer handbook</title>
+<meta name="description" content="Everything you need to understand, run, test, change and deploy Piaf, the in-browser bird song identifier.">
+<meta name="theme-color" content="#24503A">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --paper:#F7F2E7; --card:#FFFDF8; --ink:#1E2B22; --forest:#24503A; --moss:#5E7F3A;
+  --leaf:#E1EBCF; --robin:#E07A3F; --bark:#6A4E36; --sand:#DCD2BE;
+  --font-title:'Fraunces',Georgia,'Times New Roman',serif;
+  --font-body:'Nunito Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,'Cascadia Mono',Consolas,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1rem/1.62 var(--font-body);overflow-x:hidden}
+a{color:var(--forest);text-underline-offset:2px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--robin);outline-offset:2px;border-radius:3px}
+h1,h2,h3,h4{font-family:var(--font-title);color:var(--forest);line-height:1.2;font-weight:700}
+h2{font-size:1.65rem;margin:3rem 0 .8rem;padding-top:1.4rem;border-top:2px solid var(--sand);scroll-margin-top:16px}
+h2 .num{color:var(--bark);font-weight:600;margin-right:.35em}
+h3{font-size:1.2rem;margin:2rem 0 .5rem;scroll-margin-top:16px}
+h4{font-size:1.02rem;margin:1.4rem 0 .3rem;font-family:var(--font-body);color:var(--ink)}
+p{margin:.7rem 0}
+ul,ol{padding-left:1.3rem;margin:.7rem 0}
+li{margin:.3rem 0}
+li>ul,li>ol{margin:.3rem 0}
+code{font-family:var(--font-mono);font-size:.88em;background:rgba(220,210,190,.5);padding:.08em .35em;border-radius:4px;overflow-wrap:anywhere}
+kbd{font-family:var(--font-mono);font-size:.82em;background:var(--card);border:1px solid var(--sand);border-bottom-width:3px;border-radius:5px;padding:.05em .4em}
+hr{border:0;border-top:2px solid var(--sand);margin:2rem 0}
+em{font-style:italic}
+
+/* hero */
+.hero{background:var(--forest);color:var(--paper)}
+.hero-in{max-width:1180px;margin:0 auto;padding:28px 16px;display:flex;gap:20px;align-items:center}
+.hero svg{flex:none;width:72px;height:72px;border-radius:16px}
+.hero h1{color:var(--paper);margin:0;font-size:clamp(1.7rem,5vw,2.5rem)}
+.hero p{margin:.3rem 0 0}
+.hero .sub{color:var(--leaf);font-size:1.02rem}
+.hero .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.btn{display:inline-block;padding:.45rem 1rem;border-radius:999px;font-weight:700;text-decoration:none;font-size:.95rem}
+.btn.primary{background:var(--robin);color:var(--ink)}
+.btn.ghost{border:2px solid var(--leaf);color:var(--leaf)}
+.btn:hover{filter:brightness(1.07);text-decoration:none}
+
+/* layout */
+.layout{max-width:1180px;margin:0 auto;padding:0 16px 64px;display:block}
+main{min-width:0;max-width:820px}
+.toc{margin:16px 0 0}
+.toc details{background:var(--card);border:1px solid var(--sand);border-radius:12px;padding:.2rem .9rem}
+.toc summary{cursor:pointer;font-weight:700;padding:.55rem 0;color:var(--forest)}
+.toc ol{list-style:none;margin:0 0 .5rem;padding:0}
+.toc li{margin:0}
+.toc a{display:block;padding:.28rem .5rem;border-radius:6px;text-decoration:none;color:var(--ink);font-size:.95rem}
+.toc a:hover{background:var(--leaf)}
+.toc a[aria-current="true"]{background:var(--leaf);color:var(--forest);font-weight:700;box-shadow:inset 3px 0 0 var(--forest)}
+.toc .n{display:inline-block;min-width:1.7em;color:var(--bark)}
+@media (min-width:1000px){
+  .layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:48px;align-items:start}
+  .toc{position:sticky;top:16px;margin:24px 0 0;max-height:calc(100vh - 32px);overflow:auto}
+  .toc details{border:0;background:transparent;padding:0}
+  .toc summary{display:none}
+  main{padding-top:8px}
+}
+
+/* tables and code */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--sand);border-radius:10px;background:var(--card);-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .75rem;border-bottom:1px solid var(--sand)}
+th{background:var(--leaf);color:var(--ink);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code,th code{white-space:normal}
+.tw.kv table{min-width:420px}
+pre{position:relative;margin:1rem 0;background:var(--ink);color:var(--paper);border-radius:10px;padding:1rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+pre code{background:none;padding:0;font-size:.85rem;line-height:1.55;color:inherit;white-space:pre;overflow-wrap:normal;display:block}
+pre .copy{position:absolute;top:6px;right:6px;font:700 .75rem var(--font-body);background:var(--leaf);color:var(--ink);border:0;border-radius:6px;padding:.25rem .6rem;cursor:pointer;opacity:.9}
+pre .copy:hover{opacity:1;background:var(--robin)}
+
+/* callouts */
+.callout{margin:1.1rem 0;padding:.75rem 1rem .75rem 1rem;border-radius:10px;border:1px solid var(--sand);border-left-width:6px;background:var(--card)}
+.callout>:first-child{margin-top:0}.callout>:last-child{margin-bottom:0}
+.callout .lbl{display:block;font-weight:700;font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.15rem}
+.callout.rule{border-left-color:var(--robin)}
+.callout.rule .lbl{color:var(--bark)}
+.callout.note{border-left-color:var(--moss);background:var(--leaf);border-color:var(--leaf);border-left-color:var(--moss)}
+.callout.note .lbl{color:var(--forest)}
+.callout.note code{background:rgba(255,253,248,.7)}
+
+/* diagrams */
+figure.diagram{margin:1.4rem 0;background:var(--card);border:1px solid var(--sand);border-radius:12px;padding:14px 10px 10px}
+figure.diagram svg{display:block;width:100%;max-width:560px;height:auto;margin:0 auto}
+figure.diagram figcaption{font-size:.88rem;color:var(--bark);text-align:center;margin:.6rem .4rem 0}
+svg text{font-family:var(--font-body);fill:var(--ink);font-size:13px}
+svg .b{font-weight:700}
+svg .s{font-size:12px;fill:var(--bark)}
+svg g.s text{font-size:12px;fill:var(--bark)}
+svg g.c text{text-anchor:middle}
+svg .c{text-anchor:middle}
+svg .e{text-anchor:end}
+svg .w{fill:var(--paper)}
+svg .bx{fill:var(--card);stroke:var(--forest);stroke-width:1.6}
+svg .bx.hl{fill:var(--leaf)}
+svg .bx.ac{fill:var(--robin);stroke:var(--ink)}
+svg .bx.fo{fill:var(--forest)}
+svg .bx.ext{fill:var(--paper);stroke-dasharray:4 3}
+svg .grp{fill:none;stroke:var(--sand);stroke-width:2;stroke-dasharray:7 5}
+svg .gl{font-size:12px;font-weight:700;letter-spacing:.05em;fill:var(--bark)}
+svg .ar{fill:none;stroke:var(--forest);stroke-width:1.8}
+svg .ar.thick{stroke-width:3.4}
+svg .ar.dash{stroke-dasharray:5 4;stroke:var(--bark)}
+svg .mk{fill:var(--forest)}
+svg .grid{stroke:var(--sand);stroke-width:1}
+svg .dot{fill:var(--moss)}
+svg .tick{stroke:var(--bark);stroke-width:1.4}
+
+@media (max-width:600px){figure.diagram{margin-left:-8px;margin-right:-8px;padding:10px 2px 8px;border-radius:8px}}
+@media print{.toc,pre .copy{display:none}.layout{display:block}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Piaf app icon: a bird drawn with spectrogram bars"><rect width="512" height="512" rx="112" fill="#1E2B22"/><g fill="none" stroke-linecap="round" stroke-width="12"><path d="M92 228V244M112 204V256M312 274V348M332 298V340M352 302V358M372 322V376M392 342V394M412 362V412" stroke="#7E9A5A"/><path d="M132 176V213M152 158V216M172 152V228M192 158V243M212 176V260M232 194V273M252 210V282M272 228V288M292 250V294" stroke="#E1EBCF"/><path d="M132 229V276M152 232V304M172 244V338M192 259V364M212 276V380M232 289V388M252 298V388M272 304V380M292 310V366" stroke="#E07A3F"/><path d="M222 398V428M250 398V428" stroke="#6A4E36" stroke-width="9"/><path d="M84 436H430" stroke="#6A4E36"/></g><circle cx="153" cy="196" r="7" fill="#1E2B22"/></svg>
+    <div>
+      <h1>Piaf developer handbook</h1>
+      <p class="sub">Understand, run, test, change and deploy Piaf, the in-browser bird song identifier, without outside help.</p>
+      <p class="links">
+        <a class="btn primary" href="../">Open the app</a>
+        <a class="btn ghost" href="https://github.com/YannickRiou/birdnet-web">GitHub repository</a>
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Table of contents">
+<details open>
+<summary>Contents</summary>
+<ol>
+<li><a href="#what-is"><span class="n">1</span>What Piaf is</a></li>
+<li><a href="#repo-map"><span class="n">2</span>Repository map</a></li>
+<li><a href="#quick-start"><span class="n">3</span>Quick start</a></li>
+<li><a href="#architecture"><span class="n">4</span>Architecture and data flow</a></li>
+<li><a href="#worker"><span class="n">5</span>The Web Worker</a></li>
+<li><a href="#model"><span class="n">6</span>The model</a></li>
+<li><a href="#building"><span class="n">7</span>Building model/, vendor/, icons</a></li>
+<li><a href="#ui"><span class="n">8</span>User interface</a></li>
+<li><a href="#offline"><span class="n">9</span>Offline: the service worker</a></li>
+<li><a href="#storage"><span class="n">10</span>Storage and privacy</a></li>
+<li><a href="#inat"><span class="n">11</span>iNaturalist photos</a></li>
+<li><a href="#testing"><span class="n">12</span>Testing</a></li>
+<li><a href="#deployment"><span class="n">13</span>Deployment</a></li>
+<li><a href="#licences"><span class="n">14</span>Licences</a></li>
+<li><a href="#recipes"><span class="n">15</span>How do I... (recipes)</a></li>
+<li><a href="#troubleshooting"><span class="n">16</span>Troubleshooting</a></li>
+<li><a href="#limitations"><span class="n">17</span>Known limitations and ideas</a></li>
+</ol>
+</details>
+</nav>
+
+<main>
+<p>Everything you need to understand, run, test, change and deploy Piaf without outside help. Code comments and the user interface are in French; this handbook is in English. Identifiers (file names, functions, constants) are quoted exactly as they appear in the code.</p>
+
+<!-- ============ 1 ============ -->
+<h2 id="what-is"><span class="num">1</span>What Piaf is</h2>
+<p>Piaf identifies birds by their song, entirely in the browser. It is a static, installable web app (PWA) built on <strong>BirdNET V2.4</strong> (a TensorFlow.js export of the Cornell Lab / Chemnitz model). It exists so that people whose phone cannot install Merlin Bird ID (for example an iPhone 8 stuck on iOS 16) can still identify birds. It also runs on recent phones and desktops.</p>
+<p>Design constraints that explain most decisions in the code:</p>
+<ul>
+<li><strong>No server, no build step.</strong> Plain ES modules in the page, a classic script in the Web Worker. Hosting is GitHub Pages, which cannot set custom HTTP headers.</li>
+<li><strong>Everything on the device.</strong> Audio never leaves the phone. Only a species' scientific name is sent to iNaturalist, to fetch a photo.</li>
+<li><strong>Must run on an iPhone 8</strong> (iOS 16, Safari): little memory, a slow CPU/GPU, microphone stops in the background. One analysis of a 3 s window must stay under 1500 ms (the hop is 1.5 s).</li>
+<li><strong>Works offline</strong> after the first visit (about 26 MB model + 15 MB geographic model).</li>
+</ul>
+<p>Tech stack: TensorFlow.js 4.22.0 (WebGL / WebAssembly / CPU backends), Web Audio (<code>AudioWorklet</code>), Web Workers, Service Worker, <code>localStorage</code>. Dev tooling: Node (checks, vendoring) and Python (model conversion, icons).</p>
+
+<!-- ============ 2 ============ -->
+<h2 id="repo-map"><span class="num">2</span>Repository map</h2>
+<p>Paths are relative to the repository root; links go to GitHub.</p>
+<div class="tw"><table>
+<thead><tr><th>Path</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/index.html"><code>index.html</code></a></td><td>The single page: three views, bottom tabs, species card <code>&lt;template&gt;</code>, credits</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/css/app.css"><code>css/app.css</code></a></td><td>All styles; design tokens in <code>:root</code></td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/app.js"><code>js/app.js</code></a></td><td>UI controller: wires microphone, worker, cards, life list, settings, geo filter, tabs</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/audio.js"><code>js/audio.js</code></a></td><td><code>Microphone</code> class (getUserMedia + AudioWorklet + AnalyserNode) and <code>decodeFile()</code></td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/capture-worklet.js"><code>js/capture-worklet.js</code></a></td><td><code>AudioWorkletProcessor</code> <code>capture</code>: resample to 48 kHz, 100 ms blocks</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/engine-worker.js"><code>js/engine-worker.js</code></a></td><td>Web Worker: loads TF.js and the models, ring buffer, inference loop, geo filter</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/birdnet-core.js"><code>js/birdnet-core.js</code></a></td><td><code>BirdNETCore</code>: CPU mel-spectrogram layer, FFT, constants, <code>birdnetWeek()</code>. Shared by the page, the worker and Node tests</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/spectrogram.js"><code>js/spectrogram.js</code></a></td><td>Scrolling spectrogram canvas (magma colormap, 0-12 kHz)</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/species-info.js"><code>js/species-info.js</code></a></td><td>iNaturalist lookup, rate limiting, 30-day cache</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/lifelist.js"><code>js/lifelist.js</code></a></td><td>Life list in <code>localStorage</code>, JSON export/import</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/sw.js"><code>sw.js</code></a></td><td>Service worker (offline, three caches)</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/manifest.webmanifest"><code>manifest.webmanifest</code></a></td><td>PWA manifest (name, icons, colours, <code>start_url: "./"</code>)</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/tree/main/icons"><code>icons/</code></a></td><td><code>icon.svg</code> (single source) + rendered PNGs</td></tr>
+<tr><td><code>model/audio/</code>, <code>model/geo/</code></td><td>Float16 TF.js models (generated, committed)</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/model/species.json"><code>model/species.json</code></a></td><td>6522 labels <code>[scientific, French, English]</code> (generated, committed)</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/model/LICENSE.md"><code>model/LICENSE.md</code></a></td><td>Model licence, attribution and list of modifications (hand-written, kept by the build)</td></tr>
+<tr><td><code>vendor/</code></td><td>TF.js 4.22.0 files copied from <code>node_modules</code> (generated, committed)</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/build_model.py"><code>tools/build_model.py</code></a></td><td>Regenerates <code>model/</code> from Zenodo</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/check_model.mjs"><code>tools/check_model.mjs</code></a></td><td>Compares our model + CPU mel layer to the official one</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/vendor.mjs"><code>tools/vendor.mjs</code></a></td><td>Copies TF.js into <code>vendor/</code></td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/make_icons.py"><code>tools/make_icons.py</code></a></td><td>Renders PNG icons from <code>icon.svg</code></td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/package.json"><code>package.json</code></a></td><td>Scripts <code>vendor</code>, <code>check</code>, <code>serve</code>; TF.js dev dependencies pinned to 4.22.0</td></tr>
+<tr><td><a href="https://github.com/YannickRiou/birdnet-web/blob/main/.gitattributes"><code>.gitattributes</code></a></td><td>LF everywhere, binaries flagged (see <a href="#deployment">Deployment</a>)</td></tr>
+<tr><td><code>.cache/</code> (git-ignored)</td><td>Zenodo zips and the extracted official model + <code>sample.wav</code></td></tr>
+<tr><td><code>node_modules/</code> (git-ignored)</td><td>Only for <code>npm run vendor</code> and <code>npm run check</code></td></tr>
+</tbody></table></div>
+<p>The site itself needs none of <code>node_modules</code>, <code>.cache</code>, <code>tools</code> or <code>docs</code> at runtime.</p>
+
+<!-- ============ 3 ============ -->
+<h2 id="quick-start"><span class="num">3</span>Quick start</h2>
+<p>Prerequisites:</p>
+<ul>
+<li>A recent Chrome/Edge/Firefox/Safari.</li>
+<li>Python &ge; 3.8 (for <code>npm run serve</code>, <code>build_model.py</code>, <code>make_icons.py</code>).</li>
+<li>Node.js + npm (only for <code>npm run check</code> and <code>npm run vendor</code>).</li>
+<li><code>model/</code> and <code>vendor/</code> are already committed: you can run the site without installing anything.</li>
+</ul>
+<pre><code>git clone https://github.com/YannickRiou/birdnet-web.git
+cd birdnet-web
+npm run serve            # = python -m http.server 8080</code></pre>
+<p>Open <a href="http://localhost:8080">http://localhost:8080</a> (stop the server with <kbd>Ctrl</kbd>+<kbd>C</kbd>). <code>localhost</code> counts as a secure context, so the microphone, the service worker and <code>AudioWorklet</code> all work. Any other host needs HTTPS.</p>
+<p>Optional, to run the model check and to get the official sample:</p>
+<pre><code>python tools/build_model.py   # downloads zips into .cache/, extracts .cache/orig/ (sample.wav, official model)
+npm install
+npm run check</code></pre>
+<p>Set your own git identity in the repo (it uses a local identity, not a global one):</p>
+<pre><code>git config user.name  "Your Name"
+git config user.email "you@users.noreply.github.com"</code></pre>
+<p>Commit messages are in English.</p>
+<p>Useful URL parameter: <code>?backend=webgl|wasm|cpu</code> forces a compute backend (see <a href="#backend-choice">Backend choice</a>).</p>
+
+<!-- ============ 4 ============ -->
+<h2 id="architecture"><span class="num">4</span>Architecture and data flow</h2>
+<p>Three execution contexts cooperate: the <strong>UI thread</strong> (page), the <strong>audio rendering thread</strong> (<code>AudioWorklet</code>) and the <strong>worker thread</strong> (<code>engine-worker.js</code>).</p>
+<div class="callout rule"><span class="lbl">Key rule</span><p><strong>Audio samples never touch the UI thread.</strong> The worklet gets a <code>MessageChannel</code> port whose other end is transferred straight to the worker.</p></div>
+
+<figure class="diagram">
+<svg viewBox="0 0 400 830" role="img" aria-labelledby="d1t d1d">
+<title id="d1t">Architecture and data flow</title>
+<desc id="d1d">The microphone feeds a MediaStreamSource in the audio thread. It splits to an AudioWorklet, which sends 100 ms blocks over a MessageChannel port directly to the engine worker, and to an AnalyserNode, which the UI thread reads for the spectrogram. The worker posts results to app.js, which drives species-info.js (iNaturalist), lifelist.js (localStorage) and the DOM cards.</desc>
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker></defs>
+
+<!-- mic -->
+<rect class="bx ext" x="70" y="6" width="260" height="46" rx="9"/>
+<text class="b c" x="200" y="25">Microphone</text>
+<text class="s c" x="200" y="42">getUserMedia · mono · no AGC / EC / NS</text>
+<path class="ar" d="M200 52V100" marker-end="url(#a1)"/>
+
+<!-- audio thread -->
+<rect class="grp" x="8" y="74" width="384" height="196" rx="12"/>
+<text class="gl" x="20" y="92">AUDIO THREAD</text>
+<rect class="bx" x="110" y="100" width="180" height="40" rx="8"/>
+<text class="b c" x="200" y="118">MediaStreamSource</text>
+<text class="s c" x="200" y="133">AudioContext, device rate</text>
+<path class="ar" d="M200 140V156"/>
+<path class="ar" d="M200 156H118V174" marker-end="url(#a1)"/>
+<path class="ar" d="M200 156H307V174" marker-end="url(#a1)"/>
+<rect class="bx" x="20" y="174" width="196" height="84" rx="8"/>
+<text class="b c" x="118" y="193">AudioWorkletNode</text>
+<text class="c" x="118" y="210">capture-worklet.js</text>
+<text class="s c" x="118" y="227">linear resample → 48 kHz mono</text>
+<text class="s c" x="118" y="243">blocks of 100 ms (4 800 samples)</text>
+<rect class="bx" x="232" y="174" width="150" height="84" rx="8"/>
+<text class="b c" x="307" y="193">AnalyserNode</text>
+<text class="c" x="307" y="210">fftSize 1024</text>
+<text class="s c" x="307" y="227">getByteFrequencyData()</text>
+
+<!-- direct path -->
+<path class="ar thick" d="M160 258V326" marker-end="url(#a1)"/>
+<text class="b" x="170" y="289">direct MessagePort · no copy</text>
+<!-- spectrogram path -->
+<path class="ar" d="M352 258V562" marker-end="url(#a1)"/>
+<text class="s e" x="344" y="352">byte data,</text>
+<text class="s e" x="344" y="367">read by the UI</text>
+<text class="s e" x="344" y="382">each frame</text>
+
+<!-- worker thread -->
+<rect class="grp" x="8" y="300" width="230" height="142" rx="12"/>
+<text class="gl" x="20" y="317">WORKER THREAD</text>
+<rect class="bx hl" x="20" y="326" width="206" height="100" rx="8"/>
+<text class="b c" x="123" y="345">engine-worker.js</text>
+<text class="c" x="123" y="362">ring buffer 3 s (144 000)</text>
+<text class="c" x="123" y="378">every 1.5 s, if not busy:</text>
+<text class="c" x="123" y="394">TF.js model → 6 522 scores</text>
+<text class="c" x="123" y="410">keep top 5, score ≥ 0.1</text>
+
+<!-- worker <-> app -->
+<path class="ar" d="M50 426V562" marker-end="url(#a1)"/>
+<path class="ar" d="M206 562V426" marker-end="url(#a1)"/>
+<text class="s b" x="58" y="460">worker → page</text>
+<text class="s" x="58" y="475">ready · progress</text>
+<text class="s" x="58" y="490">result · geo</text>
+<text class="s" x="58" y="505">fileResult · error</text>
+<text class="s b" x="214" y="460">page → worker</text>
+<text class="s" x="214" y="475">init · audioPort</text>
+<text class="s" x="214" y="490">listen · location</text>
+<text class="s" x="214" y="505">file</text>
+
+<!-- UI thread -->
+<rect class="grp" x="8" y="530" width="384" height="196" rx="12"/>
+<text class="gl c" x="128" y="548">UI THREAD</text>
+<rect class="bx" x="20" y="562" width="206" height="66" rx="8"/>
+<text class="b c" x="123" y="581">app.js</text>
+<text class="c" x="123" y="597">onDetections() filters:</text>
+<text class="s c" x="123" y="613">NON_SPECIES · threshold · geo</text>
+<rect class="bx" x="240" y="562" width="142" height="66" rx="8"/>
+<text class="b c" x="311" y="581">spectrogram.js</text>
+<text class="c" x="311" y="597">magma canvas</text>
+<text class="s c" x="311" y="613">0–12 kHz</text>
+
+<path class="ar" d="M123 628V644"/>
+<path class="ar" d="M123 644H80V660" marker-end="url(#a1)"/>
+<path class="ar" d="M123 644H202V660" marker-end="url(#a1)"/>
+<path class="ar" d="M123 644H323V660" marker-end="url(#a1)"/>
+<rect class="bx" x="20" y="660" width="120" height="50" rx="8"/>
+<text class="b c" x="80" y="679">species-info.js</text>
+<text class="s c" x="80" y="696">photo lookup</text>
+<rect class="bx" x="152" y="660" width="100" height="50" rx="8"/>
+<text class="b c" x="202" y="679">lifelist.js</text>
+<text class="s c" x="202" y="696">life list</text>
+<rect class="bx" x="264" y="660" width="118" height="50" rx="8"/>
+<text class="b c" x="323" y="679">DOM</text>
+<text class="s c" x="323" y="696">species cards</text>
+
+<!-- external -->
+<path class="ar" d="M80 710V770" marker-end="url(#a1)"/>
+<text class="s" x="90" y="750">1 request / s</text>
+<path class="ar" d="M202 710V740H295V770" marker-end="url(#a1)"/>
+<text class="s" x="309" y="760">piaf:*</text>
+<rect class="bx ext" x="20" y="770" width="170" height="48" rx="8"/>
+<text class="b c" x="105" y="790">iNaturalist API</text>
+<text class="s c" x="105" y="806">species name only</text>
+<rect class="bx ext" x="210" y="770" width="170" height="48" rx="8"/>
+<text class="b c" x="295" y="790">localStorage</text>
+<text class="s c" x="295" y="806">settings · life list · taxa</text>
+</svg>
+<figcaption>Solid boxes are code; dashed boxes are outside the page. The thick arrow is the direct audio path from the worklet to the worker: the UI thread never sees a sample.</figcaption>
+</figure>
+
+<p>The same flow, step by step:</p>
+<ol>
+<li><strong>Microphone.</strong> <code>getUserMedia({echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1})</code> feeds a <code>MediaStreamSource</code> in an <code>AudioContext</code> running at the <em>device</em> sample rate.</li>
+<li><strong>Worklet</strong> (<code>js/capture-worklet.js</code>, node <code>capture</code>): linear resample to 48 kHz mono, cut into 100 ms blocks (4800 samples). Blocks travel on the transferred <code>MessageChannel</code> port, <em>transferred, not copied</em>.</li>
+<li><strong>Analyser</strong> (<code>fftSize</code> 1024): <code>getByteFrequencyData()</code> each frame, drawn by <code>js/spectrogram.js</code> (magma colormap, 0-12 kHz, UI thread, canvas).</li>
+<li><strong>Worker</strong> (<code>js/engine-worker.js</code>): ring buffer of 3 s (<code>WINDOW</code> = 144000 samples); every <code>HOP</code> = 1.5 s, <em>if not busy</em>, it copies the latest 3 s, runs BirdNET (TF.js) to get 6522 sigmoid scores, and keeps the top 5 scores &ge; 0.1. It posts <code>{type:'result', detections:[[index, score],...], ms}</code>.</li>
+<li><strong>UI</strong> (<code>js/app.js</code>, <code>onDetections()</code>): drop <code>NON_SPECIES</code>, drop scores below the user threshold, apply the geo filter (drop species with <code>geoScores[index] &lt; 0.03</code>), update the <code>detected</code> map, <code>rerender()</code> the species cards.</li>
+<li>Then asynchronously: <code>js/species-info.js</code> (iNaturalist photo, 1 request/s) and <code>js/lifelist.js</code> (when the user taps "+ Ma liste").</li>
+</ol>
+
+<p>Points worth knowing:</p>
+<ul>
+<li><strong>Slow devices skip windows.</strong> <code>schedule()</code> in the worker returns immediately if <code>busy</code>. When an inference finishes, it calls <code>schedule()</code> again, which analyses the <em>most recent</em> 3 s (not the next sequential window). A phone taking 3 s per inference simply produces a result every 3 s. See the timeline in the next sub-section.</li>
+<li><strong>Overlap.</strong> Windows are 3 s long and start every 1.5 s, so consecutive windows overlap by half.</li>
+<li><strong>AudioContext sample rate</strong> is the device's (44.1 or 48 kHz typically). The worklet resamples linearly (<code>ratio = sampleRate / 48000</code>); at exactly 48 kHz it copies samples through.</li>
+<li><strong>The mic nodes are chained to <code>destination</code> through a gain of 0</strong> (<code>this.mute</code>), because some browsers do not run a worklet whose output is not connected. No sound is played.</li>
+<li><strong>File analysis</strong> (<code>decodeFile()</code> in <code>audio.js</code>) decodes with an <code>OfflineAudioContext</code> at 48 kHz (the browser resamples), mixes to mono, then sends the whole <code>Float32Array</code> to the worker (transferred). The worker analyses non-overlapping 3 s windows; the last window is zero-padded; a tail shorter than 1 s is ignored.</li>
+<li><strong>iOS rules.</strong> <code>Microphone.start()</code> must run from a user gesture (it is called from the button's click handler). If the context leaves the <code>running</code> state (call, Siri, lock screen) or the track ends, <code>onInterrupted</code> fires and the UI stops listening. <code>app.js</code> requests a Screen Wake Lock while listening (when <code>navigator.wakeLock</code> exists) and re-requests it on <code>visibilitychange</code>. <code>stop()</code> suspends the context instead of closing it so restarting is instant.</li>
+<li><strong>Module systems.</strong> <code>app.js</code> and friends are ES modules (<code>&lt;script type="module"&gt;</code>). The worker is a <em>classic</em> worker (<code>new Worker(url)</code> without <code>type: 'module'</code>) using <code>importScripts</code>. <code>birdnet-core.js</code> is a plain IIFE attaching <code>BirdNETCore</code> to <code>self</code>/<code>globalThis</code>, so it works as a side-effect import in the page, via <code>importScripts</code> in the worker, and via <code>require</code> in Node.</li>
+</ul>
+
+<h3 id="timeline">Live analysis timeline</h3>
+<p>The ring buffer is read every 1.5 s, but only when the worker is idle. <code>W<sub>n</sub></code> below is the 3 s of audio handed to the model; the first result needs <code>written &ge; WINDOW</code>, i.e. 3 s of audio.</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 400 392" role="img" aria-labelledby="d2t d2d">
+<title id="d2t">Live analysis timeline, fast device versus slow device</title>
+<desc id="d2d">Time axis from 0 to 9 seconds. On a fast device every 3 second window starting each 1.5 seconds is analysed in about 100 ms, giving a result every 1.5 seconds from t=3 s. On a slow device where inference takes about 2 seconds, hop ticks that fall while the worker is busy are skipped and each new run analyses the latest 3 seconds: windows 0-3, 2-5 and 4-7 seconds.</desc>
+<defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker></defs>
+<!-- grid + axis -->
+<g class="grid">
+<path d="M30 28V352M70 28V352M110 28V352M150 28V352M190 28V352M230 28V352M270 28V352M310 28V352M350 28V352M390 28V352"/>
+</g>
+<path class="ar" d="M26 26H394" marker-end="url(#a2)"/>
+<g class="s c">
+<text x="30" y="16">0</text><text x="70" y="16">1</text><text x="110" y="16">2</text><text x="150" y="16">3</text><text x="190" y="16">4</text><text x="230" y="16">5</text><text x="270" y="16">6</text><text x="310" y="16">7</text><text x="350" y="16">8</text><text x="390" y="16">9 s</text>
+</g>
+
+<!-- fast device -->
+<text class="b" x="30" y="52">Fast device: inference ≈ 100 ms</text>
+<g>
+<rect class="bx hl" x="30" y="62" width="120" height="22" rx="5"/><text class="c" x="90" y="78">0–3 s</text>
+<rect class="bx hl" x="90" y="88" width="120" height="22" rx="5"/><text class="c" x="150" y="104">1.5–4.5 s</text>
+<rect class="bx hl" x="150" y="62" width="120" height="22" rx="5"/><text class="c" x="210" y="78">3–6 s</text>
+<rect class="bx hl" x="210" y="88" width="120" height="22" rx="5"/><text class="c" x="270" y="104">4.5–7.5 s</text>
+</g>
+<g>
+<rect class="bx ac" x="150" y="116" width="9" height="20" rx="2"/>
+<rect class="bx ac" x="210" y="116" width="9" height="20" rx="2"/>
+<rect class="bx ac" x="270" y="116" width="9" height="20" rx="2"/>
+<rect class="bx ac" x="330" y="116" width="9" height="20" rx="2"/>
+</g>
+<text class="s" x="30" y="131">results</text>
+<text class="s" x="30" y="156">A result every 1.5 s, the first one at t = 3 s.</text>
+
+<!-- slow device -->
+<text class="b" x="30" y="196">Slow device: inference ≈ 2 s (longer than the hop)</text>
+<g>
+<circle cx="150" cy="214" r="5" style="fill:var(--forest)"/>
+<circle cx="210" cy="214" r="5" style="fill:var(--card);stroke:var(--bark);stroke-width:1.6"/>
+<circle cx="270" cy="214" r="5" style="fill:var(--card);stroke:var(--bark);stroke-width:1.6"/>
+<circle cx="330" cy="214" r="5" style="fill:var(--card);stroke:var(--bark);stroke-width:1.6"/>
+</g>
+<text class="s" x="30" y="219">hops</text>
+<text class="s c" x="270" y="236">worker busy: hops skipped</text>
+<rect class="bx hl" x="30" y="246" width="120" height="22" rx="5"/><text class="c" x="90" y="262">0–3 s</text>
+<rect class="bx hl" x="110" y="272" width="120" height="22" rx="5"/><text class="c" x="170" y="288">2–5 s</text>
+<rect class="bx hl" x="190" y="246" width="120" height="22" rx="5"/><text class="c" x="250" y="262">4–7 s</text>
+<rect class="bx ac" x="150" y="300" width="80" height="24" rx="5"/><text class="c" x="190" y="317">infer 1</text>
+<rect class="bx ac" x="230" y="300" width="80" height="24" rx="5"/><text class="c" x="270" y="317">infer 2</text>
+<rect class="bx ac" x="310" y="300" width="80" height="24" rx="5"/><text class="c" x="350" y="317">infer 3</text>
+<text class="s" x="30" y="341">Each run takes the latest 3 s of audio.</text>
+
+<!-- legend -->
+<rect class="bx hl" x="30" y="362" width="22" height="14" rx="3"/><text class="s" x="58" y="374">3 s window</text>
+<rect class="bx ac" x="150" y="362" width="22" height="14" rx="3"/><text class="s" x="178" y="374">inference</text>
+<circle cx="268" cy="369" r="5" style="fill:var(--forest)"/><text class="s" x="278" y="374">hop run</text>
+<circle cx="338" cy="369" r="5" style="fill:var(--card);stroke:var(--bark);stroke-width:1.6"/><text class="s" x="348" y="374">skipped</text>
+</svg>
+<figcaption>Top: every hop is analysed, windows overlap by half. Bottom: while inference runs, hops are ignored; when it ends the next run starts at once on the most recent 3 s.</figcaption>
+</figure>
+
+<h3 id="message-protocol">Worker message protocol</h3>
+<p>All messages are <code>{type, ...}</code> objects.</p>
+<div class="tw"><table>
+<thead><tr><th>Direction</th><th><code>type</code></th><th>Payload</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>page → worker</td><td><code>init</code></td><td><code>{backend?}</code></td><td>Load TF.js backend + audio model, benchmark, reply <code>ready</code>. <code>backend</code> comes from <code>?backend=</code></td></tr>
+<tr><td>page → worker</td><td><code>audioPort</code></td><td><code>{port}</code> (transferred <code>MessagePort</code>)</td><td>Direct audio channel from the worklet; each message is a <code>Float32Array</code> of 4800 samples</td></tr>
+<tr><td>page → worker</td><td><code>listen</code></td><td><code>{on}</code></td><td>Start/stop live analysis; resets <code>written</code> and <code>lastRun</code></td></tr>
+<tr><td>page → worker</td><td><code>location</code></td><td><code>{points, area}</code></td><td>Compute species probable on <code>points</code> (<code>[[lat, lon, week], ...]</code>); <code>area</code> is <code>'europe'</code> or <code>'position'</code> and is echoed back</td></tr>
+<tr><td>page → worker</td><td><code>file</code></td><td><code>{samples}</code> (transferred <code>Float32Array</code>, 48 kHz mono)</td><td>Analyse a whole recording</td></tr>
+<tr><td>worker → page</td><td><code>progress</code></td><td><code>{value}</code> 0-1</td><td>Model download progress</td></tr>
+<tr><td>worker → page</td><td><code>ready</code></td><td><code>{backend, ms}</code></td><td>Model ready; <code>ms</code> is the benchmark time of one inference</td></tr>
+<tr><td>worker → page</td><td><code>result</code></td><td><code>{detections, clip, ms}</code></td><td>Live result: <code>detections = [[speciesIndex, score], ...]</code> (max 5, score &ge; 0.1, sorted); <code>clip</code> = the analysed 3 s window (<code>Float32Array</code>, 48 kHz, transferred) or <code>null</code> when there is no detection; <code>ms</code> is this inference</td></tr>
+<tr><td>worker → page</td><td><code>geo</code></td><td><code>{scores, area}</code></td><td><code>scores</code>: <code>Float32Array(6522)</code>, max over the points, transferred</td></tr>
+<tr><td>worker → page</td><td><code>fileResult</code></td><td><code>{time, detections, clip, progress}</code></td><td>One 3 s window of a file; <code>time</code> in seconds, <code>clip</code> as for <code>result</code>, <code>progress</code> 0-1</td></tr>
+<tr><td>worker → page</td><td><code>fileDone</code></td><td>none</td><td>File analysis finished</td></tr>
+<tr><td>worker → page</td><td><code>error</code></td><td><code>{message, during?}</code></td><td><code>during</code> is the type of the message being handled (<code>init</code>, <code>location</code>, ...). Errors raised inside the live inference loop have no <code>during</code></td></tr>
+</tbody></table></div>
+<p><code>app.js</code> handles all of these in the single <code>worker.onmessage</code> switch.</p>
+
+<h3 id="backend-choice">Backend choice</h3>
+<p>Implemented in <code>init()</code> / <code>useBackend()</code> in <a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/engine-worker.js"><code>js/engine-worker.js</code></a>.</p>
+<ol>
+<li>Candidates are <code>['webgl', 'wasm']</code>, or only the forced one when <code>?backend=</code> is given.</li>
+<li><strong>webgl</strong> is rejected if <code>tf.setBackend</code> fails (WebGL in a worker needs <code>OffscreenCanvas</code>) or if <code>tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')</code> is false: some mobile GPUs only compute in 16 bits, which corrupts the results.</li>
+<li><strong>wasm</strong> is the SIMD build, <strong>single-threaded</strong>: multi-threading needs <code>SharedArrayBuffer</code>, i.e. COOP/COEP headers, which GitHub Pages cannot set.</li>
+<li>If nothing works, <strong>cpu</strong> (pure JavaScript, very slow; the UI says "JavaScript (lent)").</li>
+<li>The model is loaded, then <strong>one warm-up inference + one timed inference</strong> with random noise (<code>benchmark()</code>). If the backend is <code>webgl</code> and took more than <strong>600 ms</strong> (and no backend was forced), the worker also benchmarks <code>wasm</code> and keeps the faster one.</li>
+</ol>
+<p>Measured on desktop, per 3 s window: WebGL ~70-120 ms, WASM ~185 ms. <strong>iPhone 8 is not measured yet</strong>; the budget is &lt; 1500 ms.</p>
+
+<!-- ============ 5 ============ -->
+<h2 id="worker"><span class="num">5</span>The Web Worker</h2>
+<p><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/engine-worker.js"><code>js/engine-worker.js</code></a> in more detail.</p>
+<ul>
+<li><strong>Constants:</strong> <code>HOP = 1.5 * SAMPLE_RATE</code>, <code>MIN_SCORE = 0.1</code>, <code>MAX_RESULTS = 5</code>.</li>
+<li><strong>Ring buffer:</strong> <code>ring</code> (<code>Float32Array(WINDOW)</code>) written at <code>written % WINDOW</code>; <code>windowBuf</code> is the linearised copy of the latest 3 s handed to the model. <code>written</code> counts samples since <code>listen</code> was switched on; nothing runs until <code>written &ge; WINDOW</code> (the first result comes after 3 s).</li>
+<li><strong><code>infer(samples)</code>:</strong> <code>tf.tensor2d(samples, [1, WINDOW])</code> → <code>model.predict</code> → <code>output.data()</code>. Tensors are disposed manually; the models are in a TF.js layers format.</li>
+<li><strong><code>topScores</code>:</strong> indices with score &ge; <code>MIN_SCORE</code>, sorted, top 5. The UI threshold (10-90 %) is applied later in <code>app.js</code>, so the worker floor of 0.1 must stay &le; the slider minimum.</li>
+<li><strong>Geo model:</strong> <code>geoFilter(points)</code> loads <code>model/geo/model.json</code> with <code>tf.loadGraphModel</code>, predicts on <code>[N, 3]</code>, takes <code>output.max(0)</code>, then <strong>disposes the model</strong>. It is loaded on demand and freed right away because memory is tight on an iPhone 8. It is re-run (not cached) every time the page asks, i.e. at startup (<code>computeArea()</code> on <code>ready</code>) and when settings change.</li>
+<li><strong>Errors</strong> are caught in <code>self.onmessage</code> and posted as <code>{type:'error', message, during}</code>.</li>
+</ul>
+
+<!-- ============ 6 ============ -->
+<h2 id="model"><span class="num">6</span>The model</h2>
+
+<h3 id="audio-model">Audio model (<code>model/audio</code>)</h3>
+<p>BirdNET V2.4, TF.js <strong>layers</strong> model.</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 400 800" role="img" aria-labelledby="d3t d3d">
+<title id="d3t">Model pipeline</title>
+<desc id="d3d">144000 audio samples are normalised to the range minus one to one, then go through two mel spectrogram layers computed on the CPU in birdnet-core.js (frame 2048 hop 278 over 0 to 3 kilohertz, and frame 1024 hop 280 over 0.5 to 15 kilohertz), each producing 96 by 511. They are concatenated, pass through a CNN backbone, give 6522 sigmoid scores, the worker keeps the top 5 at or above 0.1, and app.js filters out non-species classes, scores under the user threshold and species with a geo score under 0.03 before showing species cards.</desc>
+<defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker></defs>
+
+<rect class="bx" x="110" y="10" width="180" height="44" rx="8"/>
+<text class="b c" x="200" y="29">144 000 samples</text>
+<text class="s c" x="200" y="45">3 s · mono · 48 kHz</text>
+<path class="ar" d="M200 54V72" marker-end="url(#a3)"/>
+<rect class="bx" x="80" y="72" width="240" height="44" rx="8"/>
+<text class="b c" x="200" y="91">Normalise per window</text>
+<text class="s c" x="200" y="107">min → −1, max → +1</text>
+
+<path class="ar" d="M200 116V126"/>
+<path class="ar" d="M200 126H60V168" marker-end="url(#a3)"/>
+<path class="ar" d="M200 126H340V168" marker-end="url(#a3)"/>
+
+<rect class="grp" x="8" y="140" width="384" height="142" rx="12"/>
+<text class="gl c" x="200" y="157">COMPUTED ON CPU · birdnet-core.js</text>
+<rect class="bx hl" x="20" y="168" width="176" height="100" rx="8"/>
+<text class="b c" x="108" y="187">Mel layer 1</text>
+<text class="c" x="108" y="204">frame 2048 · hop 278</text>
+<text class="c" x="108" y="220">0 – 3 kHz</text>
+<text class="s c" x="108" y="236">Hann → FFT → mel filters</text>
+<text class="b c" x="108" y="256">→ 96 × 511 × 1</text>
+<rect class="bx hl" x="204" y="168" width="176" height="100" rx="8"/>
+<text class="b c" x="292" y="187">Mel layer 2</text>
+<text class="c" x="292" y="204">frame 1024 · hop 280</text>
+<text class="c" x="292" y="220">0.5 – 15 kHz</text>
+<text class="s c" x="292" y="236">Hann → FFT → mel filters</text>
+<text class="b c" x="292" y="256">→ 96 × 511 × 1</text>
+
+<path class="ar" d="M60 268V298H200"/>
+<path class="ar" d="M340 268V298H200"/>
+<path class="ar" d="M200 298V316" marker-end="url(#a3)"/>
+<rect class="bx" x="90" y="316" width="220" height="44" rx="8"/>
+<text class="b c" x="200" y="335">Concatenate</text>
+<text class="s c" x="200" y="351">the two 96 × 511 spectrograms</text>
+<path class="ar" d="M200 360V386" marker-end="url(#a3)"/>
+
+<rect class="bx fo" x="40" y="386" width="320" height="56" rx="8"/>
+<text class="b c w" x="200" y="408">CNN backbone (EfficientNet-like)</text>
+<text class="s c w" x="200" y="427">runs on the WebGL / WASM / CPU backend</text>
+<path class="ar" d="M200 442V468" marker-end="url(#a3)"/>
+
+<rect class="bx hl" x="80" y="468" width="240" height="46" rx="8"/>
+<text class="b c" x="200" y="488">6 522 sigmoid scores</text>
+<text class="s c" x="200" y="504">one per class, independent</text>
+<path class="ar" d="M200 514V540" marker-end="url(#a3)"/>
+
+<rect class="bx" x="50" y="540" width="300" height="44" rx="8"/>
+<text class="b c" x="200" y="559">Worker: top 5 with score ≥ 0.1</text>
+<text class="s c" x="200" y="575">posted to the page as {type:'result'}</text>
+<path class="ar" d="M200 584V600H74V636" marker-end="url(#a3)"/>
+
+<rect class="grp" x="8" y="610" width="384" height="100" rx="12"/>
+<text class="gl e" x="380" y="627">app.js · onDetections()</text>
+<rect class="bx" x="20" y="636" width="108" height="60" rx="8"/>
+<text class="b c" x="74" y="655">drop</text>
+<text class="c" x="74" y="671">NON_SPECIES</text>
+<text class="s c" x="74" y="687">(11 classes)</text>
+<rect class="bx" x="146" y="636" width="108" height="60" rx="8"/>
+<text class="b c" x="200" y="655">score ≥</text>
+<text class="c" x="200" y="671">user threshold</text>
+<text class="s c" x="200" y="687">(10–90 %)</text>
+<rect class="bx" x="272" y="636" width="108" height="60" rx="8"/>
+<text class="b c" x="326" y="655">geo mask</text>
+<text class="c" x="326" y="671">score ≥ 0.03</text>
+<text class="s c" x="326" y="687">(per species)</text>
+<path class="ar" d="M128 666H146" marker-end="url(#a3)"/>
+<path class="ar" d="M254 666H272" marker-end="url(#a3)"/>
+
+<path class="ar" d="M326 696V724H200V742" marker-end="url(#a3)"/>
+<rect class="bx ac" x="100" y="742" width="200" height="44" rx="8"/>
+<text class="b c" x="200" y="769">Species cards</text>
+</svg>
+<figcaption>From 3 s of raw audio to species cards. The mel spectrograms are computed on the CPU (our replacement for the official <code>MelSpecLayerSimple</code>); the convolutions run on the chosen TF.js backend.</figcaption>
+</figure>
+
+<div class="tw kv"><table>
+<tbody>
+<tr><th>Input</th><td><code>float32 [batch, 144000]</code>: 3 s, mono, 48 kHz, nominally in [-1, 1]</td></tr>
+<tr><th>Output</th><td><code>[batch, 6522]</code> sigmoid scores (independent per class, not a softmax)</td></tr>
+<tr><th>Output order</th><td>Same order as <a href="https://github.com/YannickRiou/birdnet-web/blob/main/model/species.json"><code>model/species.json</code></a>: <code>[scientific, French, English]</code> per entry</td></tr>
+<tr><th>Weights</th><td>float16 on disk (TF.js decodes to float32 at load), 7 shards of up to 4 MB</td></tr>
+</tbody></table></div>
+
+<p><strong>11 classes are not species</strong> and must never be shown: <code>Dog</code>, <code>Engine</code>, <code>Environmental</code>, <code>Fireworks</code>, <code>Gun</code>, <code>Human non-vocal</code>, <code>Human vocal</code>, <code>Human whistle</code>, <code>Noise</code>, <code>Power tools</code>, <code>Siren</code>. They live in <code>NON_SPECIES</code> (a <code>Set</code> of scientific-name field values) in <a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/birdnet-core.js"><code>js/birdnet-core.js</code></a> and are filtered in <code>onDetections()</code> and when counting probable species in <code>updateGeoStatus()</code>.</p>
+
+<h3 id="mel-layer">Why <code>MelSpecLayerSimple</code> is reimplemented</h3>
+<p>The model begins with two custom layers, <code>MelSpecLayerSimple</code>, which turn audio into mel spectrograms. The official layer uses <code>tf.signal.stft</code>, which is a naive O(n&sup2;) DFT on GPU and takes about 67 s on the Node CPU backend. <a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/birdnet-core.js"><code>js/birdnet-core.js</code></a> replaces it with a CPU implementation (<code>registerMelLayer(tf)</code> registers the class under the same name before the model is loaded). On the official sample: ~1.4 s instead of ~65 s in Node, with a max absolute difference of 8.6e-4 on the scores.</p>
+<p>The layer's <code>call()</code> does, per batch item:</p>
+<ol>
+<li><strong>Normalise</strong> (<code>normalize()</code>): min &rarr; -1, max &rarr; +1, per window (<code>scale = 2 / (max - min + 1e-6)</code>).</li>
+<li><strong>Frame + window:</strong> periodic Hann window (like <code>tf.signal.hannWindow</code>), frame step from config.</li>
+<li><strong>FFT:</strong> radix-2 <code>FFT</code> class; <strong>two real frames are packed into one complex FFT</strong> (<code>z = a + i·b</code>) and separated afterwards, halving the work.</li>
+<li><strong>Keep only the REAL part of the spectrum</strong> (<code>Re(A[k])</code>, <code>Re(B[k])</code>), not the magnitude. This is deliberate: it mimics the original Keras layer's complex &rarr; float cast.
+  <div class="callout rule"><span class="lbl">Pitfall</span><p><strong>Do not "fix" it to magnitude</strong>: predictions would change and <code>npm run check</code> would fail.</p></div></li>
+<li><strong>Mel filterbank:</strong> a <em>sparse</em> filterbank (non-zero range per mel band) applied to the spectrum. The filterbank values come from the layer config inside <code>model.json</code>, not from the code.</li>
+<li><strong>Square</strong>, then raise to the power <code>1 / (1 + exp(magnitude_scaling))</code> (<code>magnitude_scaling</code> is a layer weight, initial value 1.23, overwritten by the loaded weights).</li>
+<li><strong>Reverse the mel bins and transpose</strong> to <code>[96 mel, 511 frames, 1]</code> (written directly as <code>out[(mels-1-m) * F + f]</code>).</li>
+</ol>
+<p>The model has two such layers, configured in <code>model.json</code>:</p>
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>Frame length</th><th>Hop</th><th>Frequency range</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>2048</td><td>278</td><td>0 - 3 kHz</td></tr>
+<tr><td>2</td><td>1024</td><td>280</td><td>500 Hz - 15 kHz</td></tr>
+</tbody></table></div>
+<p><code>input.dataSync()</code> in <code>call()</code> is cheap because the input tensor was created from a CPU array in <code>infer()</code> (no GPU read-back). The layer's output is a CPU-built tensor handed to the backend (GPU for WebGL), so the heavy convolutions still run on the chosen backend.</p>
+<p>Constants exported by <code>BirdNETCore</code>: <code>SAMPLE_RATE</code> (48000), <code>WINDOW</code> (144000), <code>NON_SPECIES</code>, <code>FFT</code>, <code>MelSpec</code>, <code>normalize</code>, <code>registerMelLayer</code>, <code>birdnetWeek</code>.</p>
+
+<h3 id="geo-model">Geo model (<code>model/geo</code>)</h3>
+<p>TF.js <strong>graph</strong> model (BirdNET's "meta" model).</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 400 600" role="img" aria-labelledby="d4t d4d">
+<title id="d4t">Geo filter</title>
+<desc id="d4d">Two ways to choose the input points: a grid of continental Europe every 2.5 degrees (latitude 37 to 60 north, longitude 10 west to 30 east), or the precise position as a single point. Each point is combined with the BirdNET week to make an N by 3 input for the geo model, which returns N by 6522 probabilities. The maximum over the points gives one score per species, and a mask keeps species with a score of at least 0.03.</desc>
+<defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker></defs>
+
+<rect class="bx" x="10" y="10" width="236" height="118" rx="8"/>
+<text class="b" x="22" y="31">Europe grid</text>
+<text class="s" x="22" y="48">default, no permission prompt</text>
+<text x="22" y="72">lat 37 → 60 °N</text>
+<text x="22" y="90">lon 10 °W → 30 °E</text>
+<text class="s" x="22" y="112">step 2.5°</text>
+<g class="dot">
+<circle cx="172" cy="68" r="3"/><circle cx="190" cy="68" r="3"/><circle cx="208" cy="68" r="3"/><circle cx="226" cy="68" r="3"/>
+<circle cx="172" cy="84" r="3"/><circle cx="190" cy="84" r="3"/><circle cx="208" cy="84" r="3"/><circle cx="226" cy="84" r="3"/>
+<circle cx="172" cy="100" r="3"/><circle cx="190" cy="100" r="3"/><circle cx="208" cy="100" r="3"/><circle cx="226" cy="100" r="3"/>
+<circle cx="172" cy="116" r="3"/><circle cx="190" cy="116" r="3"/><circle cx="208" cy="116" r="3"/><circle cx="226" cy="116" r="3"/>
+</g>
+
+<rect class="bx" x="258" y="10" width="132" height="118" rx="8"/>
+<text class="b c" x="324" y="31">Precise position</text>
+<text class="s c" x="324" y="48">opt-in, geolocation</text>
+<circle cx="324" cy="82" r="9" style="fill:none;stroke:var(--forest);stroke-width:2"/>
+<circle cx="324" cy="82" r="3.5" style="fill:var(--forest)"/>
+<text class="s c" x="324" y="116">1 point</text>
+
+<path class="ar" d="M128 128V148H200"/>
+<path class="ar" d="M324 128V148H200"/>
+<path class="ar" d="M200 148V166" marker-end="url(#a4)"/>
+
+<rect class="bx" x="40" y="166" width="320" height="48" rx="8"/>
+<text class="b c" x="200" y="186">Input [N, 3] = [lat, lon, week]</text>
+<text class="s c" x="200" y="204">week = birdnetWeek(date), 1–48</text>
+<path class="ar" d="M200 214V240" marker-end="url(#a4)"/>
+
+<rect class="bx hl" x="40" y="240" width="320" height="58" rx="8"/>
+<text class="b c" x="200" y="259">Geo model (model/geo)</text>
+<text class="c" x="200" y="276">TF.js graph model</text>
+<text class="s c" x="200" y="291">loaded on demand, disposed right after</text>
+<path class="ar" d="M200 298V324" marker-end="url(#a4)"/>
+
+<rect class="bx" x="40" y="324" width="320" height="46" rx="8"/>
+<text class="b c" x="200" y="344">[N × 6 522] probabilities</text>
+<text class="s c" x="200" y="360">each species, at each place and week</text>
+<path class="ar" d="M200 370V396" marker-end="url(#a4)"/>
+
+<rect class="bx" x="40" y="396" width="320" height="46" rx="8"/>
+<text class="b c" x="200" y="416">max over the N points</text>
+<text class="s c" x="200" y="432">output.max(0); with 1 point: that row</text>
+<path class="ar" d="M200 442V468" marker-end="url(#a4)"/>
+
+<rect class="bx hl" x="40" y="468" width="320" height="46" rx="8"/>
+<text class="b c" x="200" y="488">geoScores: Float32Array(6 522)</text>
+<text class="s c" x="200" y="504">posted as {type:'geo'}, transferred</text>
+<path class="ar" d="M200 514V540" marker-end="url(#a4)"/>
+
+<rect class="bx ac" x="40" y="540" width="320" height="46" rx="8"/>
+<text class="b c" x="200" y="560">mask: geoScores[i] ≥ 0.03</text>
+<text class="s c" x="200" y="576" style="fill:var(--ink)">species below the threshold are dropped</text>
+</svg>
+<figcaption>The geo filter reduces "where and when" to one probability per species. Choosing a precise position only changes the input: N = 1 instead of a grid.</figcaption>
+</figure>
+
+<div class="tw kv"><table>
+<tbody>
+<tr><th>Input</th><td><code>[N, 3]</code> = <code>[latitude, longitude, week]</code></td></tr>
+<tr><th>Week</th><td>BirdNET week 1-48, four per month: <code>birdnetWeek(date)</code> = <code>month*4 + min(4, floor((day-1)/7)+1)</code></td></tr>
+<tr><th>Output</th><td><code>[N, 6522]</code>: probability that each species occurs at that place and week</td></tr>
+<tr><th>Combination</th><td>The worker takes the max over the N points</td></tr>
+<tr><th>Threshold</th><td><code>GEO_THRESHOLD = 0.03</code> in <code>app.js</code> (BirdNET's default)</td></tr>
+</tbody></table></div>
+<ul>
+<li><strong>Default area:</strong> continental Europe, <code>europePoints(week)</code> in <code>app.js</code>: a grid every 2.5&deg; of latitude 37-60 &deg;N and longitude 10 &deg;W-30 &deg;E. No permission prompt. About 490 species pass in mid-October.</li>
+<li><strong>"Precise" option:</strong> <code>navigator.geolocation.getCurrentPosition</code> &rarr; a single point. On refusal or error it silently reverts to Europe and unticks the box. The position is never stored or sent.</li>
+<li>Filter state in <code>app.js</code>: <code>geoScores</code> (null until computed) and <code>geoArea</code>. While <code>geoScores</code> is null the filter lets everything through.</li>
+</ul>
+
+<!-- ============ 7 ============ -->
+<h2 id="building"><span class="num">7</span>Building <code>model/</code>, <code>vendor/</code> and icons</h2>
+<p>You only need this when changing the model, TF.js, or the icon. The diagram shows how the generated folders reach the live site (the deployment half is detailed in <a href="#deployment">section 13</a>).</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 400 740" role="img" aria-labelledby="d6t d6d">
+<title id="d6t">Build and deploy pipeline</title>
+<desc id="d6d">Three generation lanes. Model: Zenodo zips go through tools/build_model.py to produce model/ and .cache/orig, which npm run check compares to the official model. Vendor: npm install of TF.js then tools/vendor.mjs produce vendor/. Icons: icons/icon.svg goes through tools/make_icons.py to produce the PNG icons. The outputs are committed, sw.js VERSION is bumped if model/ or vendor/ changed, then git push to main triggers a GitHub Pages build and the live site.</desc>
+<defs><marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker></defs>
+
+<!-- model lane -->
+<rect class="grp" x="8" y="8" width="384" height="172" rx="12"/>
+<text class="gl" x="20" y="26">MODEL · tools/build_model.py</text>
+<rect class="bx ext" x="20" y="40" width="96" height="52" rx="8"/>
+<text class="b c" x="68" y="62">Zenodo zips</text>
+<text class="s c" x="68" y="78">ID 15050749</text>
+<path class="ar" d="M116 66H136" marker-end="url(#a6)"/>
+<rect class="bx hl" x="136" y="40" width="148" height="52" rx="8"/>
+<text class="b c" x="210" y="62">build_model.py</text>
+<text class="s c" x="210" y="78">md5 · float16 · shards</text>
+<path class="ar" d="M284 66H304" marker-end="url(#a6)"/>
+<rect class="bx" x="304" y="40" width="76" height="52" rx="8"/>
+<text class="b c" x="342" y="62">model/</text>
+<text class="s c" x="342" y="78">committed</text>
+<path class="ar" d="M200 92V116" marker-end="url(#a6)"/>
+<rect class="bx ext" x="20" y="116" width="200" height="48" rx="8"/>
+<text class="b c" x="120" y="137">.cache/orig/</text>
+<text class="s c" x="120" y="153">official model + sample.wav</text>
+<path class="ar" d="M220 140H240" marker-end="url(#a6)"/>
+<rect class="bx" x="240" y="116" width="140" height="48" rx="8"/>
+<text class="b c" x="310" y="137">npm run check</text>
+<text class="s c" x="310" y="153">max diff ≤ 0.02</text>
+
+<!-- vendor lane -->
+<rect class="grp" x="8" y="192" width="384" height="90" rx="12"/>
+<text class="gl" x="20" y="210">VENDOR · tools/vendor.mjs</text>
+<rect class="bx ext" x="20" y="222" width="96" height="48" rx="8"/>
+<text class="b c" x="68" y="243">npm install</text>
+<text class="s c" x="68" y="259">TF.js 4.22.0</text>
+<path class="ar" d="M116 246H136" marker-end="url(#a6)"/>
+<rect class="bx hl" x="136" y="222" width="148" height="48" rx="8"/>
+<text class="b c" x="210" y="243">vendor.mjs</text>
+<text class="s c" x="210" y="259">node_modules → vendor</text>
+<path class="ar" d="M284 246H304" marker-end="url(#a6)"/>
+<rect class="bx" x="304" y="222" width="76" height="48" rx="8"/>
+<text class="b c" x="342" y="243">vendor/</text>
+<text class="s c" x="342" y="259">committed</text>
+
+<!-- icons lane -->
+<rect class="grp" x="8" y="294" width="384" height="90" rx="12"/>
+<text class="gl" x="20" y="312">ICONS · tools/make_icons.py</text>
+<rect class="bx" x="20" y="324" width="96" height="48" rx="8"/>
+<text class="b c" x="68" y="345">icon.svg</text>
+<text class="s c" x="68" y="361">single source</text>
+<path class="ar" d="M116 348H136" marker-end="url(#a6)"/>
+<rect class="bx hl" x="136" y="324" width="148" height="48" rx="8"/>
+<text class="b c" x="210" y="345">make_icons.py</text>
+<text class="s c" x="210" y="361">Edge render + Pillow</text>
+<path class="ar" d="M284 348H304" marker-end="url(#a6)"/>
+<rect class="bx" x="304" y="324" width="76" height="48" rx="8"/>
+<text class="b c" x="342" y="345">PNG icons</text>
+<text class="s c" x="342" y="361">4 files</text>
+
+<!-- deploy -->
+<path class="ar" d="M200 384V440" marker-end="url(#a6)"/>
+<text class="s" x="210" y="418">outputs are committed to git</text>
+<rect class="bx ac" x="50" y="440" width="300" height="50" rx="8"/>
+<text class="b c" x="200" y="461">Bump sw.js VERSION</text>
+<text class="c" x="200" y="478" style="font-size:12px">when model/ or vendor/ changed</text>
+<path class="ar" d="M200 490V516" marker-end="url(#a6)"/>
+<rect class="bx" x="50" y="516" width="300" height="40" rx="8"/>
+<text class="b c" x="200" y="541">git commit · git push origin main</text>
+<path class="ar" d="M200 556V580" marker-end="url(#a6)"/>
+<rect class="bx hl" x="50" y="580" width="300" height="66" rx="8"/>
+<text class="b c" x="200" y="601">GitHub Pages build (≈ 1–2 min)</text>
+<text class="s c" x="200" y="618">branch main, folder / (root)</text>
+<text class="s c" x="200" y="634">gh api …/pages/builds/latest → built</text>
+<path class="ar" d="M200 646V672" marker-end="url(#a6)"/>
+<rect class="bx fo" x="50" y="672" width="300" height="52" rx="8"/>
+<text class="b c w" x="200" y="693">Live site</text>
+<text class="s c w" x="200" y="711">yannickriou.github.io/birdnet-web</text>
+</svg>
+<figcaption>Dashed boxes are inputs from outside the repo. Generated folders (<code>model/</code>, <code>vendor/</code>, PNG icons) are committed, so GitHub Pages needs no build step of its own.</figcaption>
+</figure>
+
+<h3 id="build-model"><code>model/</code>: <code>python tools/build_model.py</code></h3>
+<p>Requires Python &ge; 3.8 and <code>numpy</code>. The script:</p>
+<ol>
+<li>Downloads <code>BirdNET_v2.4_tfjs.zip</code> and <code>BirdNET_v2.4_tflite_int8.zip</code> from Zenodo record <strong>15050749</strong> into <code>.cache/</code> and <strong>checks their MD5</strong> (the int8 zip is used only for <code>labels/fr.txt</code>).</li>
+<li>Extracts the official model to <code>.cache/orig/</code> (needed by <code>npm run check</code>; also contains <code>sample.wav</code>).</li>
+<li>Converts weights <strong>float32 &rarr; float16</strong> by writing the TF.js manifest entry <code>"quantization": {"dtype": "float16", "original_dtype": "float32"}</code>; TF.js decodes on load. A weight whose fp16 error exceeds 1 % (or overflows) would stay float32; currently none do.</li>
+<li><strong>Keeps int32 graph constants as-is</strong> (non-float32 entries in the geo graph).</li>
+<li>Re-shards the output into 4 MB <code>group1-shardNofM.bin</code> files and rewrites <code>model.json</code>.</li>
+<li>Writes <code>model/species.json</code> from <code>labels.json</code> (English) + <code>labels/fr.txt</code>, asserting that the scientific names agree line by line and that there are 6522.</li>
+<li>Deletes and rewrites only <code>model/audio</code> and <code>model/geo</code>: <strong><code>model/LICENSE.md</code> is left untouched</strong>.</li>
+</ol>
+<p>The output is deterministic, so re-running without changes produces no git diff. Afterwards: run <code>npm run check</code>, bump <code>VERSION</code> in <code>sw.js</code>, and update <code>model/LICENSE.md</code> if the list of modifications changed.</p>
+
+<h3 id="npm-check"><code>npm run check</code>: <a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/check_model.mjs"><code>tools/check_model.mjs</code></a></h3>
+<p>Needs <code>npm install</code> and <code>.cache/orig/</code> from <code>build_model.py</code>. It loads, in Node (TF.js CPU backend):</p>
+<ul>
+<li>the <strong>official</strong> fp32 model with a reference <code>tf.signal.stft</code> layer (copy of the official example code), and</li>
+<li><strong>our</strong> fp16 model with the CPU layer from <code>birdnet-core.js</code>,</li>
+</ul>
+<p>runs both on <code>.cache/orig/sample.wav</code> (16-bit PCM with a 44-byte header, first 3 s), prints the top 5 of each and the max absolute difference over the 6522 scores. It <strong>exits 1 if the difference is greater than 0.02</strong>. Run it after any change to <code>birdnet-core.js</code>, <code>build_model.py</code> or <code>model/</code>.</p>
+
+<h3 id="build-vendor"><code>vendor/</code>: <code>npm install &amp;&amp; npm run vendor</code></h3>
+<p><a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/vendor.mjs"><code>tools/vendor.mjs</code></a> copies from <code>node_modules/@tensorflow/</code>: <code>tf.min.js</code>, <code>tf-backend-wasm.min.js</code>, <code>tfjs-backend-wasm.wasm</code>, <code>tfjs-backend-wasm-simd.wasm</code> into <code>vendor/</code>, strips the trailing <code>sourceMappingURL</code> comment from the <code>.js</code> files (the maps are not shipped), and downloads the Apache-2.0 <code>LICENSE</code> from the tfjs repository at tag <code>tfjs-v4.22.0</code> into <code>vendor/LICENSE-tfjs.txt</code> (the npm package does not include it). The worker loads them with <code>importScripts('../vendor/tf.min.js', '../vendor/tf-backend-wasm.min.js', ...)</code> and <code>tf.wasm.setWasmPaths('../vendor/')</code>. <strong>There is no bundler.</strong></p>
+
+<h3 id="build-icons">Icons: <code>python tools/make_icons.py</code></h3>
+<p><a href="https://github.com/YannickRiou/birdnet-web/blob/main/icons/icon.svg"><code>icons/icon.svg</code></a> (a bird drawn with spectrogram bars) is the single source. The script renders it with headless Edge/Chrome and resizes with Pillow (<code>pip install pillow</code>):</p>
+<div class="tw"><table>
+<thead><tr><th>Output</th><th>Size</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>apple-touch-icon.png</code></td><td>180</td><td>Square: iOS rounds the corners itself</td></tr>
+<tr><td><code>icon-192.png</code>, <code>icon-512.png</code></td><td>192, 512</td><td>Rounded</td></tr>
+<tr><td><code>icon-maskable-512.png</code></td><td>512</td><td>Content scaled to 80 % (safe zone) for Android masks</td></tr>
+</tbody></table></div>
+<div class="callout rule"><span class="lbl">Pitfall</span><p>The SVG's first <code>&lt;rect&gt;</code> must be the background; the script relies on that.</p></div>
+
+<!-- ============ 8 ============ -->
+<h2 id="ui"><span class="num">8</span>User interface</h2>
+<p><a href="https://github.com/YannickRiou/birdnet-web/blob/main/index.html"><code>index.html</code></a> has three views toggled by the bottom tab bar (<code>.tabs button</code> with <code>data-view</code>; handler at the end of <code>app.js</code>):</p>
+<div class="tw"><table>
+<thead><tr><th>Tab</th><th>View id</th><th>Content</th></tr></thead>
+<tbody>
+<tr><td>Écouter</td><td><code>view-listen</code></td><td>Spectrogram canvas + loading overlay, listen button, "analyse a recording" file input, detection cards (<code>#detections</code>)</td></tr>
+<tr><td>Ma liste</td><td><code>view-list</code></td><td>Life list cards, export/import buttons</td></tr>
+<tr><td>Infos</td><td><code>view-info</code></td><td>Settings (threshold slider, geo checkboxes), engine info, install help, credits and licences</td></tr>
+</tbody></table></div>
+<p>Species cards are cloned from <code>&lt;template id="card-tpl"&gt;</code> by <code>makeCard()</code>; the same template serves detections and the life list.</p>
+<p><strong>Clip replay.</strong> Each detected species keeps the <code>clip</code> of its best-scoring window (<code>d.clip</code> in <code>onDetections()</code>, memory only, cleared with <code>detected</code>; ~576 KB per species). The <code>.play</code> button at the bottom of the card photo calls <code>playClip()</code>: the clip is peak-normalised (gain capped at &times;20, distant birds are quiet) and played in a separate <code>AudioContext</code>; a second tap or the end of the clip calls <code>stopClip()</code>. While a clip plays during live listening, the app sends <code>{type:'listen', on:false}</code> and resumes afterwards, otherwise the microphone would re-detect the playback. Life-list cards have no clip (the button stays hidden). On iPhone, playback while the mic is open may come out of the earpiece (quieter): an iOS audio-session limit.</p>
+<p><strong>Detection state</strong> (<code>app.js</code>): <code>detected</code> (Map: species index &rarr; <code>{index, best, last, first, time}</code>) and <code>cards</code> (index &rarr; <code>&lt;li&gt;</code>). <code>rerender()</code> is the single place that reconciles state with the DOM: it filters with <code>visible()</code> (threshold and geo), sorts (most recently heard first in live mode, chronological in file mode), removes cards no longer visible, and moves nodes only when needed to avoid scroll jumps. A card gets class <code>live</code> for 4 s (<code>LIVE_MS</code>) after its last detection; a 1 s <code>setInterval</code> refreshes "il y a ..." labels when the tab is visible.</p>
+<p><strong>Settings</strong> persist in <code>localStorage</code> (see <a href="#storage">Storage</a>): <code>threshold</code> (default 0.5, slider 10-90 step 5), <code>geo</code> (default true), <code>precise</code> (default false).</p>
+<p><strong>Design tokens</strong> are CSS variables in <code>:root</code> of <a href="https://github.com/YannickRiou/birdnet-web/blob/main/css/app.css"><code>css/app.css</code></a>. The palette is a "field notebook" (this page uses the same tokens):</p>
+<div class="tw"><table>
+<thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>--paper</code></td><td><code>#F7F2E7</code></td><td>Page background</td></tr>
+<tr><td><code>--card</code></td><td><code>#FFFDF8</code></td><td>Cards</td></tr>
+<tr><td><code>--ink</code></td><td><code>#1E2B22</code></td><td>Main text (~13:1 on paper)</td></tr>
+<tr><td><code>--forest</code></td><td><code>#24503A</code></td><td>Header, tabs, buttons</td></tr>
+<tr><td><code>--moss</code></td><td><code>#5E7F3A</code></td><td>Decorative borders only (4.1:1, <strong>below 4.5:1: never for text</strong>)</td></tr>
+<tr><td><code>--leaf</code></td><td><code>#E1EBCF</code></td><td>"Singing now" card, photo placeholder</td></tr>
+<tr><td><code>--robin</code></td><td><code>#E07A3F</code></td><td>Primary action; <strong>ink text</strong> on it (4.9:1)</td></tr>
+<tr><td><code>--bark</code></td><td><code>#6A4E36</code></td><td>Secondary text (6.8:1)</td></tr>
+<tr><td><code>--sand</code></td><td><code>#DCD2BE</code></td><td>Neutral borders</td></tr>
+</tbody></table></div>
+<p>Fonts: <strong>Fraunces</strong> (titles, <code>--font-title</code>) and <strong>Nunito Sans</strong> (body, <code>--font-body</code>), loaded from Google Fonts in <code>index.html</code> (cached by the service worker). Text contrast must stay &ge; 4.5:1: re-check whenever you change a colour. The CSS also handles <code>env(safe-area-inset-*)</code> (notch, home indicator), <code>prefers-reduced-motion</code>, and a 640 px max content width. There is no dark mode.</p>
+<p>The status bar text (<code>#status</code>) shows "Chargement…", "Prêt", "Écoute…" and "Analyse en N ms". <code>#engine</code> (Infos tab) shows the chosen backend and the benchmark time.</p>
+
+<!-- ============ 9 ============ -->
+<h2 id="offline"><span class="num">9</span>Offline support: the service worker</h2>
+<p><a href="https://github.com/YannickRiou/birdnet-web/blob/main/sw.js"><code>sw.js</code></a> is registered from <code>app.js</code> (<code>navigator.serviceWorker.register('sw.js')</code>). It requires HTTPS or <code>localhost</code>; it is verified working on GitHub Pages. (The Claude in-app browser could not register it on <code>http://127.0.0.1</code>; real Chrome/Safari on <code>localhost</code> is fine.)</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 400 620" role="img" aria-labelledby="d5t d5d">
+<title id="d5t">Service worker request routing and caches</title>
+<desc id="d5d">Every request goes through sw.js, which routes it. Same-origin app files go to the piaf-app-VERSION cache, network-first with cache fallback. Same-origin paths containing /model/ or /vendor/ except species.json go to piaf-heavy-VERSION, cache-first. Cross-origin images and fonts go to piaf-external, cache-first. Cross-origin API JSON goes straight to the network. VERSION must be bumped when model/ or vendor/ change.</desc>
+<defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker></defs>
+
+<rect class="bx ext" x="110" y="8" width="180" height="36" rx="8"/>
+<text class="b c" x="200" y="31">Request (fetch event)</text>
+<path class="ar" d="M200 44V64" marker-end="url(#a5)"/>
+<rect class="bx fo" x="60" y="64" width="280" height="44" rx="8"/>
+<text class="b c w" x="200" y="83">sw.js routes the request</text>
+<text class="s c w" x="200" y="99">same-origin? path? destination?</text>
+
+<!-- bus -->
+<path class="ar" d="M60 86H12V454"/>
+<path class="ar" d="M12 166H28" marker-end="url(#a5)"/>
+<path class="ar" d="M12 262H28" marker-end="url(#a5)"/>
+<path class="ar" d="M12 358H28" marker-end="url(#a5)"/>
+<path class="ar" d="M12 454H28" marker-end="url(#a5)"/>
+
+<!-- row A -->
+<rect class="bx" x="28" y="128" width="172" height="76" rx="8"/>
+<text class="b" x="38" y="148">same-origin, not heavy</text>
+<text class="s" x="38" y="166">html · js · css · manifest</text>
+<text class="s" x="38" y="182">icon · species.json</text>
+<path class="ar" d="M200 166H226" marker-end="url(#a5)"/>
+<rect class="bx hl" x="226" y="128" width="164" height="76" rx="8"/>
+<text class="b" x="236" y="148">piaf-app-VERSION</text>
+<text x="236" y="166">network-first</text>
+<text class="s" x="236" y="182">fallback to cache</text>
+<text class="s" x="236" y="196">(ignoreSearch)</text>
+
+<!-- row B -->
+<rect class="bx" x="28" y="224" width="172" height="76" rx="8"/>
+<text class="b" x="38" y="244">same-origin, heavy</text>
+<text class="s" x="38" y="262">path has /model/ or</text>
+<text class="s" x="38" y="278">/vendor/</text>
+<text class="s" x="38" y="293">(not species.json)</text>
+<path class="ar" d="M200 262H226" marker-end="url(#a5)"/>
+<rect class="bx hl" x="226" y="224" width="164" height="76" rx="8"/>
+<text class="b" x="236" y="244">piaf-heavy-VERSION</text>
+<text x="236" y="262">cache-first</text>
+<text class="s" x="236" y="278">stale until VERSION</text>
+<text class="s" x="236" y="293">is bumped</text>
+
+<!-- row C -->
+<rect class="bx" x="28" y="320" width="172" height="76" rx="8"/>
+<text class="b" x="38" y="340">cross-origin assets</text>
+<text class="s" x="38" y="358">images and fonts from</text>
+<text class="s" x="38" y="374">iNaturalist, Google Fonts</text>
+<text class="s" x="38" y="389">(destination not empty)</text>
+<path class="ar" d="M200 358H226" marker-end="url(#a5)"/>
+<rect class="bx hl" x="226" y="320" width="164" height="76" rx="8"/>
+<text class="b" x="236" y="340">piaf-external</text>
+<text x="236" y="358">cache-first</text>
+<text class="s" x="236" y="374">no VERSION in the</text>
+<text class="s" x="236" y="389">cache name</text>
+
+<!-- row D -->
+<rect class="bx ext" x="28" y="416" width="172" height="76" rx="8"/>
+<text class="b" x="38" y="436">cross-origin API JSON</text>
+<text class="s" x="38" y="454">api.inaturalist.org</text>
+<text class="s" x="38" y="470">(empty destination)</text>
+<path class="ar" d="M200 454H226" marker-end="url(#a5)"/>
+<rect class="bx ext" x="226" y="416" width="164" height="76" rx="8"/>
+<text class="b" x="236" y="436">network only</text>
+<text class="s" x="236" y="454">not cached by sw.js</text>
+
+<!-- rule -->
+<rect class="bx ac" x="12" y="516" width="376" height="92" rx="10"/>
+<text class="b" x="24" y="538">VERSION rule</text>
+<text x="24" y="556">model/ or vendor/ changed → bump VERSION in sw.js</text>
+<text x="24" y="574">new cache names; activate deletes the old ones</text>
+<text x="24" y="592" style="font-size:12px">install pre-caches SHELL, then skipWaiting()</text>
+</svg>
+<figcaption>One service worker, three caches. Heavy files are cache-first and never revalidated, so their cache <em>name</em> must change when they do.</figcaption>
+</figure>
+
+<div class="tw"><table>
+<thead><tr><th>Cache</th><th>Strategy</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td><code>piaf-app-&lt;VERSION&gt;</code></td><td><strong>network-first</strong>, fallback to cache (<code>ignoreSearch</code>)</td><td><code>SHELL</code> list: html, js, css, manifest, icon, <code>model/species.json</code>; anything else same-origin that is not heavy</td></tr>
+<tr><td><code>piaf-heavy-&lt;VERSION&gt;</code></td><td><strong>cache-first</strong></td><td>Same-origin paths containing <code>/model/</code> or <code>/vendor/</code> (except <code>species.json</code>)</td></tr>
+<tr><td><code>piaf-external</code></td><td><strong>cache-first</strong></td><td>iNaturalist images and Google Fonts (cross-origin requests with a non-empty <code>request.destination</code>; API JSON responses go straight to the network)</td></tr>
+</tbody></table></div>
+<p>On <code>install</code>, <code>SHELL</code> is pre-cached and <code>skipWaiting()</code> is called; on <code>activate</code>, caches not in <code>[APP, HEAVY, EXTERNAL]</code> are deleted and clients are claimed.</p>
+
+<p><strong>Rules for contributors:</strong></p>
+<ol>
+<li><div class="callout rule" style="margin-top:0"><span class="lbl">Rule</span><p><strong>Bump <code>VERSION</code> whenever <code>model/</code> or <code>vendor/</code> change.</strong> Heavy files are cache-first, so without a new cache name users would be served stale model/TF.js files forever.</p></div></li>
+<li><strong>Add every new app file to <code>SHELL</code></strong> (new JS module, new page, new asset) so it works offline from the first visit.</li>
+<li>App files are network-first, so ordinary code edits reach users on the next online load without a bump (the first load after a deploy may still run the previous service worker's cached pages if the network is slow; a reload fixes it).</li>
+<li>Changing <code>sw.js</code> itself makes browsers re-install it.</li>
+</ol>
+
+<!-- ============ 10 ============ -->
+<h2 id="storage"><span class="num">10</span>Storage and privacy</h2>
+<p>All data is in <code>localStorage</code>, per device and per origin:</p>
+<div class="tw"><table>
+<thead><tr><th>Key</th><th>Content</th><th>Written by</th></tr></thead>
+<tbody>
+<tr><td><code>piaf:settings:v1</code></td><td><code>{threshold, geo, precise}</code></td><td><code>app.js</code></td></tr>
+<tr><td><code>piaf:lifelist:v1</code></td><td><code>{ "&lt;scientific name&gt;": {sci, fr, en, first, last, best} }</code>; dates are ISO strings, <code>best</code> is 0-1 rounded to 0.01</td><td><code>lifelist.js</code></td></tr>
+<tr><td><code>piaf:taxa:v1</code></td><td>iNaturalist cache <code>{ "&lt;sci&gt;": {id, url, photo, attribution, license, licenseUrl, t} }</code>, 30-day TTL</td><td><code>species-info.js</code></td></tr>
+</tbody></table></div>
+<p>All reads/writes are wrapped in <code>try/catch</code> (private mode, quota).</p>
+<div class="callout rule"><span class="lbl">Rule</span><p><strong>If you change a schema in an incompatible way, bump the <code>:vN</code> suffix and write a migration</strong> from the old key.</p></div>
+<p><strong>Life list export</strong> is a JSON file <code>{app: 'piaf', version: 1, exported, species: [...]}</code> named <code>piaf-liste-YYYY-MM-DD.json</code>. <strong>Import merges</strong>: new species are added; for existing ones the earliest <code>first</code>, latest <code>last</code> and max <code>best</code> win. Invalid files raise "Fichier non reconnu". <code>add()</code> also calls <code>navigator.storage.persist()</code> to ask the browser not to evict the data.</p>
+<p><strong>iOS caveat:</strong> Safari may wipe storage of a site not visited for 7 days unless it is added to the Home Screen. The UI tells users to install it and to export regularly.</p>
+<p>Privacy summary: audio is processed locally and never sent; location only if "precise" is ticked, and it stays on the device; iNaturalist receives only a scientific name; no analytics, no cookies.</p>
+
+<!-- ============ 11 ============ -->
+<h2 id="inat"><span class="num">11</span>iNaturalist photos</h2>
+<p><a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/species-info.js"><code>js/species-info.js</code></a>, <code>getSpeciesInfo(sci)</code> returns <code>{id, url, photo, attribution, license, licenseUrl, t}</code> (or <code>{photo: null}</code> / <code>null</code> on failure).</p>
+<ul>
+<li>Request: <code>GET https://api.inaturalist.org/v1/taxa?q=&lt;sci&gt;&amp;rank=species&amp;per_page=5&amp;locale=fr</code>. Results are matched on the exact <code>name</code> or on <code>matched_term</code> (iNaturalist synonyms).</li>
+<li><strong>Fallback:</strong> if nothing matches, search again <em>without</em> <code>rank=species</code> for species iNaturalist files as a subspecies, and accept a name with the same genus and last epithet (for example <em>Acanthis cabaret</em> &rarr; <em>Acanthis flammea cabaret</em>).</li>
+<li><strong>Only photos with a <code>license_code</code> (Creative Commons) are shown</strong>, with the attribution text and a link to the licence deed (<code>licenseUrl()</code>), rendered in the card's <code>.credit</code> line. <strong>This is a legal requirement: keep it.</strong> Species without a CC photo show an empty frame (the card still links to the taxon page).</li>
+<li><strong>Rate limit:</strong> requests are chained through a promise queue with 1 s spacing (<code>SPACING</code>); iNaturalist asks for roughly 60 requests/min at most. Duplicate in-flight lookups share one promise.</li>
+<li>Cache: 30 days in <code>piaf:taxa:v1</code>; if the network fails, an expired cache entry is still used.</li>
+<li>Only the scientific name leaves the device.</li>
+</ul>
+
+<!-- ============ 12 ============ -->
+<h2 id="testing"><span class="num">12</span>Testing</h2>
+<p>There is no unit-test framework. Verification is: the model check (automated), a syntax check, and manual scenarios.</p>
+
+<h3 id="test-auto">Automated</h3>
+<pre><code>npm install                      # once
+python tools/build_model.py      # once (creates .cache/orig/ with sample.wav)
+npm run check                    # model + mel layer vs official; must print OK
+node --check js/app.js           # syntax check, repeat for each file you touched
+node --check js/engine-worker.js
+node --check sw.js</code></pre>
+<p><code>node --check</code> works on the ES-module files because it only parses them. Run <code>npm run check</code> whenever <code>js/birdnet-core.js</code>, <code>tools/build_model.py</code> or <code>model/</code> change.</p>
+
+<h3 id="test-desktop">Manual: desktop</h3>
+<ol>
+<li><code>npm run serve</code>, open <a href="http://localhost:8080">http://localhost:8080</a>, open DevTools (<kbd>F12</kbd>).</li>
+<li>Wait for the loading overlay to disappear; the Infos tab should show "Moteur : ...".</li>
+<li>Check the console for errors, and Application &rarr; Service Workers for <code>sw.js</code> (activated).</li>
+<li>Go offline (DevTools Network &rarr; Offline), reload: the app must still load and work.</li>
+</ol>
+
+<h3 id="test-nomic">Testing without a microphone</h3>
+<p>Both recipes use the official sample (<code>.cache/orig/sample.wav</code>, created by <code>build_model.py</code>; served by the dev server because it lives under the repo root). Paste in the DevTools console of the Piaf page.</p>
+<h4>Recipe 1: analyse a file</h4>
+<p>Exercises the worker and the file path.</p>
+<pre><code>const buf = await (await fetch('.cache/orig/sample.wav')).arrayBuffer();
+const dt = new DataTransfer();
+dt.items.add(new File([buf], 'sample.wav', { type: 'audio/wav' }));
+const input = document.querySelector('#file');
+input.files = dt.files;
+input.dispatchEvent(new Event('change'));</code></pre>
+<p>Expected: <em>Sizerin cabaret</em> around 95 % and <em>Sizerin flammé</em> around 80 %. If they are missing, untick the geo filter and lower the threshold to see whether the filter or the model is responsible.</p>
+<h4>Recipe 2: fake microphone</h4>
+<p>Exercises getUserMedia &rarr; worklet &rarr; worker &rarr; live loop.</p>
+<pre><code>const ac = new AudioContext();
+const buffer = await ac.decodeAudioData(await (await fetch('.cache/orig/sample.wav')).arrayBuffer());
+const src = ac.createBufferSource();
+src.buffer = buffer; src.loop = true;
+const dest = ac.createMediaStreamDestination();
+src.connect(dest); src.start();
+await ac.resume();
+navigator.mediaDevices.getUserMedia = async () =&gt; dest.stream;
+// Now click « Écouter ».</code></pre>
+<p>Expected: the same two species highlighted within about 5 s (3 s to fill the buffer, then one analysis every 1.5 s). If <code>ac</code> stays suspended, click once in the page first (autoplay policy).</p>
+<p>To also exercise the <strong>resampler</strong>, run this <em>before</em> clicking « Écouter » (and reload the page first: <code>Microphone</code> creates its context once):</p>
+<pre><code>const Native = window.AudioContext;
+window.AudioContext = function (opts) { return new Native({ ...opts, sampleRate: 44100 }); };</code></pre>
+<p>The app's context then runs at 44.1 kHz and the worklet resamples to 48 kHz; results must be the same two species. Create the fake-mic context (<code>ac</code>) <em>before</em> installing this wrapper, or via <code>new Native()</code>.</p>
+
+<h3 id="test-mobile">Manual: mobile</h3>
+<ul>
+<li>DevTools device mode at <strong>375 &times; 667</strong> approximates an iPhone 8 layout (not its performance).</li>
+<li>Real-device testing needs <strong>HTTPS</strong>: use the GitHub Pages URL, or an HTTPS tunnel to <code>localhost:8080</code>. On iPhone, also test Add to Home Screen, a phone call during listening (<code>onInterrupted</code>), and screen lock.</li>
+<li>Record the "Moteur : ..., N ms" line from the Infos tab. It must be &lt; 1500 ms.</li>
+</ul>
+
+<h3 id="test-checklist">Manual regression checklist</h3>
+<div class="tw"><table>
+<thead><tr><th>Scenario</th><th>Expected</th></tr></thead>
+<tbody>
+<tr><td>First load online</td><td>Progress bar to 100 %, then "Prêt", listen button enabled</td></tr>
+<tr><td>Reload offline</td><td>Same, no network errors for app files</td></tr>
+<tr><td>Listen, then stop</td><td>Cards appear, spectrogram scrolls, "Arrêter" ↔ "Écouter"; stop releases the mic indicator</td></tr>
+<tr><td>Deny microphone</td><td>Hint "Micro refusé..." and listen button usable again</td></tr>
+<tr><td>Move threshold slider</td><td>Cards appear/disappear immediately, value persists after reload</td></tr>
+<tr><td>Toggle geo filter</td><td>Count text on the Infos tab changes; cards re-filter</td></tr>
+<tr><td>"Precise" with permission denied</td><td>Box unticks itself, falls back to Europe</td></tr>
+<tr><td>Add species to list, export, clear storage, import</td><td>Entry restored, dates preserved</td></tr>
+<tr><td>Analyse a file</td><td>Progress %, cards sorted by time, "Analyse terminée."</td></tr>
+<tr><td>Species with no CC photo</td><td>Empty photo frame, no credit line, no console error</td></tr>
+</tbody></table></div>
+
+<!-- ============ 13 ============ -->
+<h2 id="deployment"><span class="num">13</span>Deployment</h2>
+<p>Hosting is <strong>GitHub Pages</strong>, "Deploy from a branch", branch <code>main</code>, folder <code>/ (root)</code> (repo Settings &rarr; Pages). Every push to <code>main</code> redeploys in about 1-2 minutes. Site: <a href="https://yannickriou.github.io/birdnet-web/">https://yannickriou.github.io/birdnet-web/</a>. The pipeline is drawn in the <a href="#building">build and deploy diagram</a> above.</p>
+<pre><code>git push origin main
+gh api repos/YannickRiou/birdnet-web/pages/builds/latest   # status: "built" when done</code></pre>
+<div class="callout rule"><span class="lbl">Rule</span><p>All URLs in the code are relative (<code>sw.js</code>, <code>manifest.webmanifest</code> with <code>start_url: "./"</code>, <code>new URL(..., import.meta.url)</code>), so the app works from the <code>/birdnet-web/</code> sub-path. Keep it that way: <strong>never introduce root-absolute paths such as <code>/js/app.js</code></strong>.</p></div>
+<div class="callout rule"><span class="lbl">Pitfall</span><p><strong>Line endings.</strong> The repo has <a href="https://github.com/YannickRiou/birdnet-web/blob/main/.gitattributes"><code>.gitattributes</code></a> (<code>* text=auto eol=lf</code>, plus <code>*.bin</code>, <code>*.wasm</code>, <code>*.png</code> marked binary). On Windows, <code>core.autocrlf=true</code> would otherwise rewrite files and could corrupt binaries or create whole-file diffs. <strong>Do not remove it.</strong></p></div>
+<p><strong>Repo identity.</strong> Commits are in English; this repo uses a local identity (<code>user.name</code> plus a GitHub noreply email). Set yours with <code>git config</code> inside the repo.</p>
+<p>After deploying, open the live site in a private window and confirm that the new service worker activates (Application &rarr; Service Workers) and that the Infos tab works.</p>
+
+<!-- ============ 14 ============ -->
+<h2 id="licences"><span class="num">14</span>Licences</h2>
+<div class="tw"><table>
+<thead><tr><th>Part</th><th>Licence</th><th>What you must do</th></tr></thead>
+<tbody>
+<tr><td>Piaf code</td><td>MIT (<a href="https://github.com/YannickRiou/birdnet-web/blob/main/LICENSE"><code>LICENSE</code></a>)</td><td>Keep the notice</td></tr>
+<tr><td>BirdNET V2.4 model (<code>model/</code>)</td><td><strong>CC BY-NC 4.0</strong></td><td><strong>Non-commercial use only</strong>; keep the attribution; list your modifications in <a href="https://github.com/YannickRiou/birdnet-web/blob/main/model/LICENSE.md"><code>model/LICENSE.md</code></a></td></tr>
+<tr><td>TensorFlow.js (<code>vendor/</code>)</td><td>Apache-2.0</td><td>Keep <code>vendor/LICENSE-tfjs.txt</code></td></tr>
+<tr><td>Species photos</td><td>Each photo's own Creative Commons licence</td><td>Keep the per-photo credit and licence link on every card</td></tr>
+<tr><td>Fraunces, Nunito Sans</td><td>SIL OFL</td><td>Credited in the app</td></tr>
+</tbody></table></div>
+<div class="callout rule"><span class="lbl">Licence obligations</span><p>The model is <strong>non-commercial only</strong> (CC BY-NC 4.0), photos must keep their per-photo credit, and TF.js needs its licence file. In-app credits live in <code>index.html</code>, section "Crédits et licences": update it if you add a component, change the model, or alter the modifications list.</p></div>
+<p>Piaf is not affiliated with the Cornell Lab, Chemnitz University of Technology or Merlin; do not imply otherwise. The README has the full attribution table and the BirdNET citation.</p>
+
+<!-- ============ 15 ============ -->
+<h2 id="recipes"><span class="num">15</span>How do I... (recipes)</h2>
+
+<h3 id="r-threshold">Change the default confidence threshold</h3>
+<ol>
+<li>In <a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/app.js"><code>js/app.js</code></a>: <code>const settings = { threshold: 0.5, ... }</code>.</li>
+<li>If needed, change the slider bounds in <code>index.html</code> (<code>#threshold</code>, <code>min="10" max="90" step="5"</code>). The worker floor <code>MIN_SCORE = 0.1</code> in <code>engine-worker.js</code> must stay &le; the slider minimum.</li>
+<li>Existing users keep their saved value in <code>piaf:settings:v1</code>; the default only affects new users.</li>
+<li>Re-test: slider position on first load, cards appear/disappear.</li>
+</ol>
+
+<h3 id="r-hop">Change the analysis rate (<code>HOP</code>)</h3>
+<ol>
+<li>In <a href="https://github.com/YannickRiou/birdnet-web/blob/main/js/engine-worker.js"><code>js/engine-worker.js</code></a>: <code>const HOP = 1.5 * SAMPLE_RATE</code>.</li>
+<li>Smaller = more analyses (more CPU/battery, more overlap); larger = fewer. The window must stay <code>WINDOW</code> (3 s): it is the model's input size.</li>
+<li>Re-test on a slow device: if inference takes longer than <code>HOP</code>, windows are skipped (by design; see the <a href="#timeline">timeline</a>). Update the "1,5 s" mention in comments and the README if you change it.</li>
+</ol>
+
+<h3 id="r-grid">Change the default region / grid</h3>
+<ol>
+<li>In <code>app.js</code>, edit <code>europePoints(week)</code>: latitude loop (37 &rarr; 60), longitude loop (-10 &rarr; 30), step 2.5. More points = slower geo prediction (still one forward pass, <code>N</code> rows).</li>
+<li>Update the French texts that say "Europe continentale": <code>updateGeoStatus()</code> in <code>app.js</code>, the checkbox label in <code>index.html</code>, and the README.</li>
+<li>If you rename the area id (<code>'europe'</code>), update the <code>geoArea</code> comparisons (<code>'position'</code> is the other id).</li>
+<li>Re-test: the species count in the Infos tab, and a few species that should (not) pass.</li>
+</ol>
+
+<h3 id="r-lang">Add another label language</h3>
+<p>BirdNET ships labels for many languages in the int8 zip as <code>labels/&lt;lang&gt;.txt</code>: <code>af ar cs da de en_uk en_us es fi fr hu it ja ko nl no pl pt ro ru sk sl sv th tr uk zh</code>. Each line is <code>&lt;scientific&gt;_&lt;common name&gt;</code>, in the same order as the model outputs.</p>
+<ol>
+<li>In <a href="https://github.com/YannickRiou/birdnet-web/blob/main/tools/build_model.py"><code>tools/build_model.py</code></a>, read another file with <code>int8.read("labels/&lt;lang&gt;.txt")</code>, assert the scientific names match as the French/English loop does, and append the name as a <strong>fourth column</strong> of each <code>species.json</code> entry (appending keeps indexes 1 and 2 stable).</li>
+<li>Run the script, then <code>npm run check</code>.</li>
+<li>In <code>app.js</code>, entries are destructured as <code>[sci, fr, en]</code> in <code>rerender()</code>, <code>onDetections()</code> and <code>makeCard(sci, fr, en)</code>. Add a language setting (new key in <code>settings</code>, a <code>&lt;select&gt;</code> in the Infos view) and pick the right column. The life list stores <code>fr</code> and <code>en</code>: add the new field to <code>lifelist.js</code> (<code>add()</code>, <code>importFile()</code>) without breaking older saves (do <strong>not</strong> bump <code>v1</code> unless you migrate).</li>
+<li>Optionally change <code>locale=fr</code> in <code>species-info.js</code> so iNaturalist returns localised names.</li>
+<li>Bump <code>VERSION</code> in <code>sw.js</code> (the model folder changed) and update <code>model/LICENSE.md</code>.</li>
+</ol>
+
+<h3 id="r-translate">Translate the UI</h3>
+<p>French strings are spread over: <a href="https://github.com/YannickRiou/birdnet-web/blob/main/index.html"><code>index.html</code></a> (all labels, <code>lang="fr"</code>, meta description), <code>app.js</code> (status/hint/error messages, <code>toLocaleDateString('fr-FR')</code>, <code>confirm</code>/<code>alert</code>), <code>lifelist.js</code> (<code>alert</code>), <code>species-info.js</code> (<code>deed.fr</code> in <code>licenseUrl</code>, <code>locale=fr</code>), <a href="https://github.com/YannickRiou/birdnet-web/blob/main/manifest.webmanifest"><code>manifest.webmanifest</code></a> (<code>lang</code>, <code>name</code>, <code>description</code>), and the <code>BACKENDS</code> labels in <code>app.js</code>. There is no i18n layer: either do a straight replacement or extract strings into one module first. Keep the French licence/attribution wording unless you adapt it.</p>
+
+<h3 id="r-colours">Change colours or fonts</h3>
+<ol>
+<li>Edit the tokens in <code>:root</code> of <a href="https://github.com/YannickRiou/birdnet-web/blob/main/css/app.css"><code>css/app.css</code></a>. Keep text contrast &ge; 4.5:1 (<code>--moss</code> is decorative only).</li>
+<li>Also update <code>&lt;meta name="theme-color"&gt;</code> in <code>index.html</code> and <code>theme_color</code> / <code>background_color</code> in the manifest, the hard-coded <code>#000004</code> spectrogram background in <code>.spectro</code>, and <code>icons/icon.svg</code> (then re-render the icons).</li>
+<li>Fonts: change the Google Fonts <code>&lt;link&gt;</code> in <code>index.html</code> and <code>--font-title</code> / <code>--font-body</code>. Keep fallbacks (offline first visit has no fonts).</li>
+</ol>
+
+<h3 id="r-icon">Replace the icon</h3>
+<ol>
+<li>Edit <a href="https://github.com/YannickRiou/birdnet-web/blob/main/icons/icon.svg"><code>icons/icon.svg</code></a> (first element must be the background <code>&lt;rect&gt;</code>).</li>
+<li><code>python tools/make_icons.py</code> (needs Pillow and Edge or Chrome).</li>
+<li>Commit the SVG and the four PNGs. The SVG is also cached in <code>SHELL</code>, so bump <code>VERSION</code> if you want installed apps to refresh quickly (icons are network-first, so it is not mandatory).</li>
+</ol>
+
+<h3 id="r-tfjs">Upgrade TF.js</h3>
+<ol>
+<li>In <code>package.json</code>, change <strong>both</strong> pinned versions (<code>@tensorflow/tfjs</code>, <code>@tensorflow/tfjs-backend-wasm</code>) to the same release. In <code>tools/vendor.mjs</code>, update the licence URL tag (<code>tfjs-v4.22.0</code>).</li>
+<li><code>npm install &amp;&amp; npm run vendor</code>.</li>
+<li><code>npm run check</code> (Node uses the npm package, so it validates the custom-layer API and the model).</li>
+<li>Test in a browser with <code>?backend=webgl</code>, <code>?backend=wasm</code> and <code>?backend=cpu</code>: the custom layer (<code>registerMelLayer</code>) and the WASM paths are the fragile parts. Check the <code>.wasm</code> file names in <code>vendor.mjs</code> still exist in the new package.</li>
+<li><strong>Bump <code>VERSION</code> in <code>sw.js</code></strong>, update the version in <code>index.html</code> credits/README if mentioned.</li>
+</ol>
+
+<h3 id="r-module">Add a new JS module</h3>
+<ol>
+<li>Create <code>js/&lt;name&gt;.js</code> as an ES module; <code>import</code> it from <code>app.js</code> (or <code>importScripts</code> it in the worker with a path relative to the worker file).</li>
+<li>Add <code>'js/&lt;name&gt;.js'</code> to <code>SHELL</code> in <code>sw.js</code> and bump <code>VERSION</code>.</li>
+<li>Use only relative URLs. Run <code>node --check js/&lt;name&gt;.js</code>.</li>
+<li>Add the file to the repository map in this handbook and the README architecture table.</li>
+</ol>
+
+<h3 id="r-model">Update the BirdNET model</h3>
+<p>Change the Zenodo record id, file names and MD5 values at the top of <code>build_model.py</code>, run it, <code>npm run check</code> (the output indexes/shape assumptions: 6522 classes, input 144000, mel layers), bump <code>VERSION</code>, update <code>model/LICENSE.md</code> and the credits in <code>index.html</code>. See also the BirdNET+ note in <a href="#limitations">limitations</a>.</p>
+
+<h3 id="r-release">Release checklist</h3>
+<ol>
+<li><code>npm run check</code> if anything under <code>model/</code>, <code>birdnet-core.js</code> or <code>build_model.py</code> changed.</li>
+<li><code>node --check</code> on every JS file you touched.</li>
+<li>Manual test on a phone (real HTTPS origin): load, listen, stop, file analysis, offline reload.</li>
+<li>Bump <code>VERSION</code> in <code>sw.js</code> if <code>model/</code> or <code>vendor/</code> changed; add new files to <code>SHELL</code>.</li>
+<li>Check licences/credits (<a href="#licences">section 14</a>) if you added a dependency or changed the model.</li>
+<li>Commit (English message), <code>git push origin main</code>, then <code>gh api repos/YannickRiou/birdnet-web/pages/builds/latest</code> until built; smoke-test the live URL.</li>
+</ol>
+
+<!-- ============ 16 ============ -->
+<h2 id="troubleshooting"><span class="num">16</span>Troubleshooting</h2>
+<div class="tw"><table style="min-width:640px">
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Overlay stuck on "Chargement du modèle…" or "Préparation du modèle…"</td><td>Model files not reachable (wrong path, 404), blocked network, or <code>species.json</code> failed ("Impossible de charger la liste des espèces.")</td><td>Open DevTools &rarr; Network: check <code>model/species.json</code>, <code>model/audio/model.json</code> and the shards. Serve from the repo root. A stale service-worker cache can also hold broken files: Application &rarr; Clear storage, reload. On <code>error</code> with <code>during: 'init'</code> the overlay shows the message (e.g. no usable backend, unregistered layer)</td></tr>
+<tr><td>Progress reaches 100 % then nothing</td><td>The warm-up inference/benchmark is compiling shaders or failing</td><td>Check the console and the worker. Try <code>?backend=wasm</code>. Keep the page in the foreground</td></tr>
+<tr><td>"Moteur : JavaScript (lent)"</td><td>Neither WebGL (no OffscreenCanvas in workers, or float32 render unsupported) nor WASM could start; the cpu backend is a last resort</td><td>Test <code>?backend=wasm</code> and read the console error. Check that <code>vendor/*.wasm</code> are served (not 404, not served with an HTML fallback). Needs a recent browser; SIMD is required for the fast WASM build</td></tr>
+<tr><td>"Moteur : WebAssembly" when you expected GPU</td><td>WebGL was rejected (no float32) or slower than 600 ms and WASM won</td><td>Expected on some phones. Force <code>?backend=webgl</code> to compare timings</td></tr>
+<tr><td>No detections</td><td>Threshold too high, geo filter excluding the species, microphone processing, or only non-species classes</td><td>Lower the threshold; untick the geo filter (a species out of region/season is dropped); run Recipe 1 to validate the pipeline with known audio; confirm audio is really reaching the mic (spectrogram moves); check that echo cancellation/noise suppression/AGC are off for the track (<code>stream.getAudioTracks()[0].getSettings()</code>); remember <code>NON_SPECIES</code> (dog, engine, human voice...) are never shown</td></tr>
+<tr><td>Detections look wrong or too many false positives</td><td>Threshold too low, geo filter off</td><td>Raise the threshold (50-70 %), keep the geo filter on. If <em>results are systematically garbage</em> after code changes, suspect <code>birdnet-core.js</code>: run <code>npm run check</code></td></tr>
+<tr><td>Stale files after a deploy</td><td>Heavy files are cache-first and <code>VERSION</code> was not bumped; or a service worker still serving the old shell</td><td>Bump <code>VERSION</code> in <code>sw.js</code> when <code>model/</code> or <code>vendor/</code> change. For a user stuck on old files: DevTools &rarr; Application &rarr; Service Workers &rarr; Unregister, Clear storage, reload</td></tr>
+<tr><td>Photos missing</td><td>Species has no Creative Commons photo; offline and not cached; iNaturalist rate-limited/errored (HTTP 429/5xx); species name not matched</td><td>Expected for some species (empty frame). Online, check the <code>api.inaturalist.org</code> request in Network. A failed lookup is retried on next view (failures are not cached). To retest, delete <code>piaf:taxa:v1</code> from localStorage</td></tr>
+<tr><td>"Micro refusé..."</td><td>Permission denied in the browser/OS</td><td>Allow the microphone for the site in browser/OS settings, reload. On iOS: Settings &rarr; Safari (or the installed app) &rarr; Microphone</td></tr>
+<tr><td>"Aucun micro détecté"</td><td><code>NotFoundError</code>: no input device</td><td>Plug/enable a microphone; check OS privacy settings</td></tr>
+<tr><td>"Le micro est déjà utilisé..."</td><td><code>NotReadableError</code>: another app holds the mic</td><td>Close the other app</td></tr>
+<tr><td>Mic fails on a non-localhost HTTP address</td><td><code>getUserMedia</code> and service workers need a secure context</td><td>Use <code>localhost</code> or HTTPS</td></tr>
+<tr><td>iOS stops listening when the screen locks / app switches</td><td>Safari suspends audio capture in the background; <code>AudioContext</code> goes to <code>interrupted</code>, and the UI reports "Écoute interrompue..."</td><td>By design: keep the screen on (Wake Lock is requested when available), tap « Écouter » to resume. A phone call or Siri does the same</td></tr>
+<tr><td>Life list disappeared on iPhone</td><td>Safari purged storage of a site not visited for 7 days and not installed</td><td>Add to Home Screen; export regularly; import the JSON backup</td></tr>
+<tr><td>Spectrogram blank but model works</td><td><code>AnalyserNode</code> not connected or context suspended</td><td>Check <code>mic.ctx.state</code>; AudioContext must be resumed from a user gesture</td></tr>
+<tr><td><code>?backend=</code> ignored</td><td>Value not one of <code>webgl</code>, <code>wasm</code>, <code>cpu</code>, or the forced backend failed (then it silently falls back to cpu)</td><td>Check the console and the "Moteur" line</td></tr>
+<tr><td><code>npm run check</code> fails: <code>.cache/orig/...</code> not found</td><td>Official model not extracted</td><td>Run <code>python tools/build_model.py</code> first</td></tr>
+<tr><td><code>npm run check</code> max diff &gt; 0.02</td><td>Change in <code>birdnet-core.js</code> (e.g. someone "fixed" the real-part quirk) or a bad conversion</td><td>Revert the change; compare the printed top-5 of both models</td></tr>
+</tbody></table></div>
+
+<!-- ============ 17 ============ -->
+<h2 id="limitations"><span class="num">17</span>Known limitations and ideas</h2>
+<ul>
+<li><strong>Resampler is linear.</strong> Fine for 44.1 &rarr; 48 kHz (typical mics) but it would alias if a microphone ran above 48 kHz. Add a low-pass filter before decimation if that ever matters.</li>
+<li><strong>No dark mode.</strong></li>
+<li><strong>Species without a CC photo</strong> show an empty frame.</li>
+<li><strong>WASM is single-threaded</strong> (no COOP/COEP on GitHub Pages). Moving to a host that can set those headers (or using a service-worker header shim) would allow multi-threaded WASM.</li>
+<li><strong>iPhone 8 timing is not measured yet.</strong> Do it before promising anything; the target is &lt; 1500 ms.</li>
+<li><strong><code>error</code> messages from the live loop have no <code>during</code></strong>, so the UI cannot distinguish them from a generic error (it only writes the message in the hint).</li>
+<li><strong>BirdNET+ V3.0 preview</strong> exists on Zenodo record <strong>20703646</strong> (ONNX, 11K species, CC BY-SA 4.0, FP16 pruned 72 MB, heavier compute). It would need <code>onnxruntime-web</code> and a new front-end (mel layer) check against the official pipeline. A possible future upgrade; note the licence differs (BY-SA vs BY-NC), so <code>model/LICENSE.md</code> and credits would change.</li>
+<li>Further ideas, not started: dark mode, per-session history, sharing a list, more label languages.</li>
+</ul>
+
+<hr>
+<p style="color:var(--bark);font-size:.9rem">Piaf developer handbook. Source: <a href="https://github.com/YannickRiou/birdnet-web/blob/main/docs/handbook.html"><code>docs/handbook.html</code></a> &middot; <a href="https://github.com/YannickRiou/birdnet-web">GitHub repository</a> &middot; <a href="../">Open the app</a></p>
+</main>
+</div>
+
+<script>
+(function(){
+  /* copy buttons */
+  document.querySelectorAll('pre').forEach(function(pre){
+    var code=pre.querySelector('code'); if(!code) return;
+    var b=document.createElement('button'); b.type='button'; b.className='copy'; b.textContent='Copy';
+    b.setAttribute('aria-label','Copy code to clipboard');
+    b.addEventListener('click',function(){
+      var text=code.innerText;
+      function done(){ b.textContent='Copied'; setTimeout(function(){ b.textContent='Copy'; },1500); }
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done,function(){ fallback(); });
+      } else fallback();
+      function fallback(){
+        var r=document.createRange(); r.selectNodeContents(code);
+        var s=getSelection(); s.removeAllRanges(); s.addRange(r);
+        try{ document.execCommand('copy'); done(); }catch(e){}
+        s.removeAllRanges();
+      }
+    });
+    pre.appendChild(b);
+  });
+
+  /* TOC: open on wide screens, collapsed on narrow ones */
+  var det=document.querySelector('.toc details');
+  var wide=window.matchMedia('(min-width:1000px)');
+  function sync(){ det.open=wide.matches; }
+  sync();
+  if(wide.addEventListener) wide.addEventListener('change',sync); else wide.addListener(sync);
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  links.forEach(function(a){ a.addEventListener('click',function(){ if(!wide.matches) det.open=false; }); });
+
+  /* highlight the current section */
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  function mark(id){
+    links.forEach(function(a){ a.removeAttribute('aria-current'); });
+    if(map[id]) map[id].setAttribute('aria-current','true');
+  }
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting) mark(e.target.id); });
+    },{rootMargin:'-8% 0px -80% 0px'});
+    document.querySelectorAll('main h2[id]').forEach(function(h){ io.observe(h); });
+  }
+})();
+</script>
+</body>
+</html>

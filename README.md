@@ -59,8 +59,9 @@ Piaf is not affiliated with the Cornell Lab of Ornithology or with Merlin.
 
 ## Development
 
-**New to the code? Start with the [developer handbook](docs/HANDBOOK.md)**: how Piaf works, how to
-test it without a microphone, how to change it, deploy it, and troubleshoot it.
+**New to the code? Start with the [developer handbook](https://yannickriou.github.io/birdnet-web/docs/handbook.html)**
+(with diagrams; source in [`docs/handbook.html`](docs/handbook.html)): how Piaf works, how to test it without a
+microphone, how to change it, deploy it, and troubleshoot it.
 
 No build step: these are static files.
 
