@@ -8,7 +8,8 @@
  *   {type:'location', points, area}   espèces probables sur une zone (modèle géographique)
  *   {type:'file', samples}            analyse un enregistrement complet (48 kHz)
  * Messages envoyés : progress, ready, result, geo, fileResult, fileDone, error.
- * result et fileResult portent `clip` : les 3 s analysées (Float32Array 48 kHz), ou null sans détection.
+ * result et fileResult portent `clip` : les 3 s analysées plus du contexte (1,5 s de chaque côté en fichier,
+ * 3 s avant en direct), en Float32Array 48 kHz, ou null sans détection.
  */
 /* global tf, BirdNETCore */
 importScripts('../vendor/tf.min.js', '../vendor/tf-backend-wasm.min.js', 'birdnet-core.js');
@@ -19,13 +20,14 @@ const GEO_URL = new URL('../model/geo/model.json', self.location).href;
 const HOP = 1.5 * SAMPLE_RATE; // nouvelle analyse toutes les 1,5 s (chevauchement de moitié)
 const MIN_SCORE = 0.1; // les scores plus bas ne sont pas transmis à l'interface
 const MAX_RESULTS = 5;
+const PAD = 1.5 * SAMPLE_RATE; // contexte ajouté de chaque côté de la fenêtre pour la réécoute (fichier)
 
 let model = null;
 let listening = false;
 let busy = false;
-// Tampon circulaire des 3 dernières secondes.
-const ring = new Float32Array(WINDOW);
-const windowBuf = new Float32Array(WINDOW);
+// Tampon circulaire des 6 dernières secondes : 3 s analysées + 3 s de contexte pour la réécoute.
+const RING = 2 * WINDOW;
+const ring = new Float32Array(RING);
 let written = 0; // échantillons reçus depuis le début de l'écoute
 let lastRun = 0; // valeur de `written` lors de la dernière analyse
 
@@ -93,10 +95,10 @@ async function init(preferred) {
 
 function onAudio(chunk) {
   if (!listening) return;
-  let offset = written % WINDOW;
+  let offset = written % RING;
   for (let i = 0; i < chunk.length; i++) {
     ring[offset++] = chunk[i];
-    if (offset === WINDOW) offset = 0;
+    if (offset === RING) offset = 0;
   }
   written += chunk.length;
   schedule();
@@ -107,15 +109,18 @@ async function schedule() {
   if (busy || !model || written < WINDOW || written - lastRun < HOP) return;
   busy = true;
   lastRun = written;
-  const start = written % WINDOW;
-  windowBuf.set(ring.subarray(start));
-  windowBuf.set(ring.subarray(0, start), WINDOW - start);
+  // Copie des derniers échantillons (jusqu'à 6 s) : le tampon continue de se remplir pendant l'inférence.
+  const snap = new Float32Array(Math.min(written, RING));
+  const end = written % RING; // prochaine case à écrire = fin des données
+  const tail = Math.min(snap.length, end);
+  snap.set(ring.subarray(end - tail, end), snap.length - tail);
+  if (tail < snap.length) snap.set(ring.subarray(RING - (snap.length - tail)), 0);
   try {
     const t = performance.now();
-    const scores = await infer(windowBuf);
+    const scores = await infer(snap.subarray(snap.length - WINDOW));
     const detections = topScores(scores);
-    // L'extrait analysé accompagne les détections, pour pouvoir le réécouter (transfert sans copie).
-    const clip = detections.length ? windowBuf.slice() : null;
+    // L'extrait accompagne les détections, pour pouvoir le réécouter (transfert sans copie).
+    const clip = detections.length ? snap : null;
     if (listening) post({ type: 'result', detections, clip, ms: Math.round(performance.now() - t) }, clip ? [clip.buffer] : []);
   } catch (e) {
     post({ type: 'error', message: String(e && e.message || e) });
@@ -134,7 +139,7 @@ async function analyzeFile(samples) {
     chunk.set(part);
     const scores = await infer(chunk);
     const detections = topScores(scores);
-    const clip = detections.length ? chunk.slice() : null;
+    const clip = detections.length ? samples.slice(Math.max(0, start - PAD), start + WINDOW + PAD) : null;
     post({ type: 'fileResult', time: start / SAMPLE_RATE, detections, clip,
       progress: Math.min(1, (start + WINDOW) / samples.length) }, clip ? [clip.buffer] : []);
   }

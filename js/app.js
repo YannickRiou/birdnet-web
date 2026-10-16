@@ -219,13 +219,26 @@ function playClip(clip, button) {
   if (same) return; // second appui = arrêt
   playCtx = playCtx || new (window.AudioContext || window.webkitAudioContext)();
   playCtx.resume();
-  // Normalisation : un chant lointain est souvent très faible (gain plafonné à ×20).
+  // Passe-haut (2 × 1er ordre, ~600 Hz) : vent et grondements, hors bande des oiseaux, dominaient le pic
+  // et laissaient le chant trop faible. Puis normalisation (gain plafonné à ×50 pour un chant lointain).
+  const alpha = 1 / (1 + 2 * Math.PI * 600 / 48000);
+  const filtered = Float32Array.from(clip);
+  for (let pass = 0; pass < 2; pass++) {
+    let x1 = 0;
+    let y1 = 0;
+    for (let i = 0; i < filtered.length; i++) {
+      const x = filtered[i];
+      y1 = alpha * (y1 + x - x1);
+      x1 = x;
+      filtered[i] = y1;
+    }
+  }
   let peak = 0;
-  for (let i = 0; i < clip.length; i++) peak = Math.max(peak, Math.abs(clip[i]));
-  const gain = Math.min(0.9 / (peak || 1), 20);
-  const buffer = playCtx.createBuffer(1, clip.length, 48000);
+  for (let i = 0; i < filtered.length; i++) peak = Math.max(peak, Math.abs(filtered[i]));
+  const gain = Math.min(0.9 / (peak || 1), 50);
+  const buffer = playCtx.createBuffer(1, filtered.length, 48000);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < clip.length; i++) data[i] = clip[i] * gain;
+  for (let i = 0; i < filtered.length; i++) data[i] = filtered[i] * gain;
   const source = playCtx.createBufferSource();
   source.buffer = buffer;
   source.connect(playCtx.destination);
