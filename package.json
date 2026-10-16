@@ -1,0 +1,14 @@
+{
+  "name": "birdnet-web",
+  "private": true,
+  "description": "Outils de développement uniquement : le site lui-même est statique et n'a besoin d'aucune installation.",
+  "scripts": {
+    "vendor": "node tools/vendor.mjs",
+    "check": "node tools/check_model.mjs",
+    "serve": "python -m http.server 8080"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "@tensorflow/tfjs-backend-wasm": "4.22.0"
+  }
+}

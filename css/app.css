@@ -1,0 +1,140 @@
+/* Charte « carnet de terrain » : papier crème, verts de forêt, orange rougegorge. */
+:root {
+  --paper: #F7F2E7;      /* fond, comme un carnet de terrain */
+  --card: #FFFDF8;       /* cartes */
+  --ink: #1E2B22;        /* texte principal (13:1 sur papier) */
+  --forest: #24503A;     /* couleur principale : en-tête, onglets, boutons */
+  --moss: #5E7F3A;       /* décor et bordures uniquement (4,1:1) */
+  --leaf: #E1EBCF;       /* espèce en train de chanter */
+  --robin: #E07A3F;      /* action principale, texte encre dessus (4,9:1) */
+  --bark: #6A4E36;       /* texte secondaire (6,8:1) */
+  --sand: #DCD2BE;       /* bordures neutres */
+  --font-title: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Nunito Sans', system-ui, -apple-system, sans-serif;
+  --gutter: 16px;
+  --tabs-h: 56px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.45 var(--font-body);
+  padding-bottom: calc(var(--tabs-h) + var(--safe-bottom));
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-family: var(--font-title); line-height: 1.15; margin: 0; font-weight: 600; }
+a { color: var(--forest); }
+button, label.ghost { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+
+.top {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(10px + var(--safe-top)) var(--gutter) 10px;
+  background: var(--forest); color: var(--paper);
+}
+.top h1 { font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.top h1 img { width: 30px; height: 30px; border-radius: 7px; }
+.status { font-size: 13px; text-align: right; }
+
+main { max-width: 640px; margin: 0 auto; }
+.view { padding: 0 var(--gutter) 24px; }
+
+/* Spectrogramme */
+.spectro { position: relative; margin: 0 calc(-1 * var(--gutter)); height: 140px; background: #000004; }
+.spectro canvas { display: block; width: 100%; height: 100%; }
+.loading {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+  gap: 8px; padding: 0 var(--gutter); background: var(--forest); color: var(--paper);
+}
+.loading p { margin: 0; }
+.loading .small { color: var(--paper); opacity: 1; }
+.bar { height: 6px; border-radius: 3px; background: rgba(247, 242, 231, .25); overflow: hidden; }
+.bar div { height: 100%; width: 0; background: var(--robin); transition: width .2s; }
+
+/* Commandes */
+.controls { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 20px 0 8px; }
+.cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-width: 220px; min-height: 56px; padding: 0 28px; border: 0; border-radius: 10px;
+  background: var(--robin); color: var(--ink);
+  font-family: var(--font-title); font-size: 21px; font-weight: 700;
+}
+.cta:disabled { opacity: .5; }
+.cta .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
+.cta.on { background: var(--forest); color: var(--paper); }
+.cta.on .dot { background: var(--robin); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.5); opacity: .6; } }
+.ghost {
+  display: inline-block; padding: 8px 14px; border: 1.5px solid var(--forest); border-radius: 8px;
+  background: var(--card); color: var(--forest); font-weight: 700; font-size: 14px;
+}
+.hint { min-height: 1.45em; margin: 0; text-align: center; font-size: 14px; color: var(--bark); }
+
+.section-title { font-size: 21px; margin: 22px 0 10px; display: flex; align-items: baseline; gap: 8px; }
+.count { font-family: var(--font-body); font-size: 14px; font-weight: 700; color: var(--bark); }
+.empty { color: var(--bark); font-size: 15px; }
+.small { font-size: 13px; color: var(--bark); }
+
+/* Cartes espèces */
+.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.card {
+  display: grid; grid-template-columns: 72px 1fr auto; gap: 12px; align-items: center;
+  padding: 10px; border-radius: 8px; background: var(--card);
+  border: 1.5px solid var(--sand);
+  transition: background-color .4s, border-color .4s;
+  contain: layout paint;
+}
+.card.live { background: var(--leaf); border-color: var(--moss); }
+.photo { width: 72px; height: 72px; border-radius: 4px; overflow: hidden; background: var(--leaf); }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo img:not([src]) { visibility: hidden; }
+.body { min-width: 0; }
+.body h3 { font-size: 18px; }
+.body h3 a { color: var(--ink); text-decoration: none; }
+.body h3 a[href]:active { text-decoration: underline; }
+.sci { margin: 1px 0 0; font-style: italic; font-size: 14px; color: var(--bark); }
+.meta { margin: 2px 0 0; font-size: 14px; font-weight: 700; color: var(--forest); }
+.credit { margin: 3px 0 0; font-size: 11px; line-height: 1.3; color: var(--bark); overflow-wrap: anywhere; }
+.credit a { color: inherit; }
+.add {
+  align-self: center; padding: 8px 10px; border: 0; border-radius: 6px; font-size: 13px; font-weight: 800;
+  background: var(--forest); color: var(--paper); white-space: nowrap;
+}
+.add.in { background: var(--leaf); color: var(--forest); }
+.add.remove { background: var(--card); color: var(--forest); border: 1.5px solid var(--forest); }
+
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 8px; }
+
+/* Réglages */
+.setting { margin: 0 0 18px; }
+.setting input[type=range] { width: 100%; accent-color: var(--forest); }
+.switch { display: flex; gap: 10px; align-items: flex-start; }
+.switch input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--forest); flex: none; }
+.switch + .switch { margin-top: 10px; }
+.switch:has(input:disabled) { opacity: .55; }
+.credits { padding-left: 18px; font-size: 14px; }
+.credits li { margin-bottom: 8px; }
+
+/* Onglets */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 3;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  height: calc(var(--tabs-h) + var(--safe-bottom)); padding-bottom: var(--safe-bottom);
+  background: var(--forest);
+}
+.tabs button {
+  border: 0; background: transparent; color: var(--paper); font-weight: 700; font-size: 15px;
+  border-top: 3px solid transparent;
+}
+.tabs button[aria-current=page] { border-top-color: var(--robin); background: rgba(0, 0, 0, .15); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cta.on .dot { animation: none; }
+  .card, .bar div { transition: none; }
+}

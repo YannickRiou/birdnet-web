@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Piaf · chants d'oiseaux</title>
+  <meta name="description" content="Identifiez les oiseaux à leur chant, directement dans le navigateur, même hors ligne. Propulsé par BirdNET.">
+  <meta name="theme-color" content="#24503A">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Piaf">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito+Sans:ital,wght@0,400;0,700;0,800;1,400&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1><img src="icons/icon.svg" alt="" width="30" height="30">Piaf</h1>
+    <span id="status" class="status" role="status">Chargement…</span>
+  </header>
+
+  <main>
+    <section id="view-listen" class="view" aria-label="Écouter">
+      <div class="spectro">
+        <canvas id="spectro" aria-hidden="true"></canvas>
+        <div id="loading" class="loading">
+          <p id="loading-text">Préparation du modèle…</p>
+          <div class="bar"><div id="loading-bar"></div></div>
+          <p class="small">Premier lancement : ~26 Mo à télécharger (Wi-Fi conseillé). Ensuite, tout fonctionne hors ligne.</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="listen" class="cta" disabled>
+          <span class="dot" aria-hidden="true"></span><span id="listen-label">Écouter</span>
+        </button>
+        <label class="ghost" id="file-label">
+          Analyser un enregistrement
+          <input type="file" id="file" accept="audio/*" hidden>
+        </label>
+      </div>
+      <p id="hint" class="hint"></p>
+
+      <h2 class="section-title">Entendus <span id="det-count" class="count"></span></h2>
+      <ul id="detections" class="cards" aria-live="polite"></ul>
+      <p id="det-empty" class="empty">Touchez « Écouter » et approchez-vous des chants. Les espèces reconnues s'affichent ici.</p>
+    </section>
+
+    <section id="view-list" class="view" aria-label="Ma liste" hidden>
+      <h2 class="section-title">Ma liste à vie <span id="life-count" class="count"></span></h2>
+      <ul id="lifelist" class="cards"></ul>
+      <p id="life-empty" class="empty">Votre liste est vide. Après une détection, touchez « ＋ Ma liste » pour confirmer l'espèce.</p>
+      <div class="row">
+        <button id="export" class="ghost">Exporter (sauvegarde)</button>
+        <label class="ghost">Importer<input type="file" id="import" accept="application/json,.json" hidden></label>
+      </div>
+      <p class="small">La liste est enregistrée uniquement sur ce téléphone. Sur iPhone, ajoutez Piaf à l'écran d'accueil : Safari peut sinon effacer les données d'un site non visité depuis 7 jours. Pensez à exporter de temps en temps.</p>
+    </section>
+
+    <section id="view-info" class="view" aria-label="Réglages et informations" hidden>
+      <h2 class="section-title">Réglages</h2>
+      <div class="setting">
+        <label for="threshold">Confiance minimale : <strong id="threshold-value"></strong></label>
+        <input type="range" id="threshold" min="10" max="90" step="5">
+        <p class="small">Plus haut = moins d'erreurs mais des espèces manquées. 50 % est un bon compromis.</p>
+      </div>
+      <div class="setting">
+        <label class="switch"><input type="checkbox" id="geo"> Ne garder que les espèces probables en Europe continentale à cette saison</label>
+        <label class="switch"><input type="checkbox" id="precise"> Utiliser plutôt ma position précise (plus juste, demande l'autorisation ; la position ne quitte pas le téléphone)</label>
+        <p class="small" id="geo-status"></p>
+      </div>
+      <p class="small" id="engine"></p>
+
+      <h2 class="section-title">Installer sur l'écran d'accueil</h2>
+      <p>iPhone : dans Safari, bouton <strong>Partager</strong> puis <strong>Sur l'écran d'accueil</strong>. Android : menu ⋮ puis <strong>Installer l'application</strong>.</p>
+      <p>Gardez l'écran allumé pendant l'écoute : les navigateurs coupent le micro en arrière-plan.</p>
+
+      <h2 class="section-title">Crédits et licences</h2>
+      <ul class="credits">
+        <li><strong>Reconnaissance : <a href="https://birdnet.cornell.edu" target="_blank" rel="noopener">BirdNET</a></strong>, K. Lisa Yang Center for Conservation Bioacoustics (Cornell Lab of Ornithology) et Université technique de Chemnitz. Modèle V2.4 sous licence <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.fr" target="_blank" rel="noopener">CC BY-NC 4.0</a>, <a href="https://zenodo.org/records/15050749" target="_blank" rel="noopener">source</a>. Modifications : poids convertis en float16 et calcul du spectrogramme réécrit pour le processeur (résultats identiques). Kahl, S. et al. (2021), <em>BirdNET: A deep learning solution for avian diversity monitoring</em>, Ecological Informatics 61.</li>
+        <li><strong>Photos : <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a></strong>. Chaque photo est créditée à son auteur avec sa licence Creative Commons.</li>
+        <li><strong>Calcul : <a href="https://www.tensorflow.org/js" target="_blank" rel="noopener">TensorFlow.js</a></strong>, licence Apache 2.0.</li>
+        <li><strong>Polices :</strong> Fraunces et Nunito Sans, licence SIL Open Font.</li>
+        <li><strong>Code de Piaf :</strong> licence MIT, <a href="https://github.com/YannickRiou/birdnet-web" target="_blank" rel="noopener">sur GitHub</a>.</li>
+      </ul>
+      <p class="small">Usage non commercial uniquement (licence du modèle). Piaf n'est affilié ni au Cornell Lab ni à l'application Merlin. Les identifications peuvent être fausses : vérifiez avant de les noter.</p>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Navigation">
+    <button data-view="view-listen" aria-current="page">Écouter</button>
+    <button data-view="view-list">Ma liste</button>
+    <button data-view="view-info">Infos</button>
+  </nav>
+
+  <template id="card-tpl">
+    <li class="card">
+      <div class="photo"><img alt="" loading="lazy" decoding="async"></div>
+      <div class="body">
+        <h3><a class="name" target="_blank" rel="noopener"></a></h3>
+        <p class="sci"></p>
+        <p class="meta"></p>
+        <p class="credit"></p>
+      </div>
+      <button class="add"></button>
+    </li>
+  </template>
+</body>
+</html>
