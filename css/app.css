@@ -96,8 +96,10 @@ main { max-width: 640px; margin: 0 auto; }
 .photo img:not([src]) { visibility: hidden; }
 .photo { position: relative; }
 .play {
-  position: absolute; inset: 0; margin: auto; width: 40px; height: 40px; border: 0; border-radius: 50%;
-  background: rgba(30, 43, 34, .78); color: var(--paper); font-size: 15px; line-height: 40px; padding: 0;
+  /* Centré en bas de la photo : l'oiseau reste visible. */
+  position: absolute; left: 50%; bottom: 5px; transform: translateX(-50%);
+  width: 30px; height: 30px; border: 0; border-radius: 50%;
+  background: rgba(30, 43, 34, .78); color: var(--paper); font-size: 12px; line-height: 30px; padding: 0;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .play.on { background: var(--robin); color: var(--ink); }
