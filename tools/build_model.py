@@ -85,8 +85,9 @@ def to_float16(zf, src_dir, dst_dir):
 
 def main():
     tfjs, int8 = fetch("tfjs"), fetch("int8")
-    if OUT.exists():
-        shutil.rmtree(OUT)
+    tfjs.extractall(CACHE / "orig")  # modèle officiel + sample.wav, utilisés par npm run check
+    for sub in ("audio", "geo"):  # model/LICENSE.md est conservé
+        shutil.rmtree(OUT / sub, ignore_errors=True)
     to_float16(tfjs, "model", OUT / "audio")
     to_float16(tfjs, "model/mdata", OUT / "geo")
 
